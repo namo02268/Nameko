@@ -25,14 +25,11 @@ public:
 int main() {
 	using namespace Nameko;
 	
-	Entity e = 0;
+	Chunk<Transform, Mesh> chunk;
+	Transform t1(10);
+	Mesh m1(10);
 
-	SetEID(e, 8);
-	SetCIID(e, 72);
-
-
-	std::cout << GetEID(e) << std::endl;
-	std::cout << GetCIID(e) << std::endl;
+	chunk.AddComponents(t1, m1);
 
 	return 0;
 }

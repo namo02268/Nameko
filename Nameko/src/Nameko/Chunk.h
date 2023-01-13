@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Nameko/Config.h"
+#include "Nameko/Entity.h"
 
 #include <memory>
 #include <cassert>
@@ -10,8 +11,13 @@
 #include <iostream>
 
 namespace Nameko {
-	template<typename T, size_t blockSize = 1024>
-	class Block {
+	class IBlock {
+	public:
+		~IBlock() = default;
+	};
+
+	template<typename T, size_t blockSize = 512>
+	class Block : public IBlock {
 	private:
 		void* m_ptr;
 		size_t m_blockSize;
@@ -29,33 +35,24 @@ namespace Nameko {
 		Block(const Block&) = delete;
 		Block& operator=(const Block&) = delete;
 		~Block() {
-			this->clean();
 			free(this->m_ptr);
 		}
 
 		T& operator[](const int n) { return *this->get(n); }
 
-		template<typename... Args>
-		inline T* create(Args && ... args) {
+		template<typename Component>
+		inline T* create(Component&& component) {
 			auto ptr = reinterpret_cast<T*>(this->m_ptr) + m_size;
-			::new(ptr) T(std::forward<Args>(args) ...);
+			::new(ptr) T(std::move(component));
 			this->m_size++;
 			return ptr;
 		}
 
 		inline void destroy(size_t n) {
-			this->at(n).~T();
 			if (n != this->m_size - 1) {
 				this->at(n) = this->at(this->m_size - 1);
 			}
 			this->m_size--;
-		}
-
-		inline void clean() {
-			for (int i = 0; i < this->m_size; i++) {
-				this->at(i).~T();
-			}
-			this->m_size = 0;
 		}
 
 		inline T* data() {
@@ -78,25 +75,55 @@ namespace Nameko {
 		}
 	};
 
+
 	template<typename... Components>
 	class Chunk {
-		using ComponentBlocks = std::tuple<Block<Components, MAX_COMPONENTS>...>;
+		template<typename T>
+		using BlockType = Block<T, CHUNK_SIZE>;
+		using ComponentBlocks = std::tuple<BlockType<Components>...>;
+		using EntityBlock = BlockType<Entity>;
+
+		template<typename T, typename Tuple>
+		struct has_type;
+		template<typename T, typename... Ts>
+		struct has_type<T, std::tuple<Ts...>> : std::disjunction<std::is_same<T, Ts>...> {};
 
 	private:
 		ComponentBlocks m_blocks;
-
+		EntityBlock m_entities;
 		const size_t ComponentCount = sizeof...(Components);
 
 	public:
 		Chunk() = default;
 		~Chunk() = default;
 
-		template<>
-		void AddComponent()
+		template<typename Component>
+		inline void AddComponent(Component& component) {
+			this->get<Component>()->create(std::move(component));
+		}
+
+		inline void AddComponents(Components&... components) {
+			(this->AddComponent(components), ...);
+		}
 
 		template<typename Component>
-		inline Block<Component, MAX_COMPONENTS>* get() {
-			return &std::get<Block<Component, MAX_COMPONENTS>>(this->m_blocks);
+		inline BlockType<Component>* get() {
+			static_assert(has_type<BlockType<Component>, std::tuple<BlockType<Components>...>>::value, "Component is not contained in this Chunk.");
+			return &std::get<BlockType<Component>>(this->m_blocks);
 		}
+
+		/*
+		template<size_t i>
+		inline typename std::tuple_element<i, ComponentBlocks>::type* get() {
+			return &std::get<i>(this->m_blocks);
+		}
+
+		inline void AddComponents(Components&... components) {
+			for (size_t i = 0; i < ComponentCount; i++) {
+				(this->get<i>()->create(components), ...);
+			}
+		}
+		*/
+
 	};
 }
