@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Nameko/Config.h"
-#include "Nameko/Entity.h"
-
 #include <memory>
 #include <cassert>
-#include <vector>
 #include <tuple>
+#include <iterator>
+#include <functional>
+
+#include "Nameko/Config.h"
+#include "Nameko/Entity.h"
 
 #include <iostream>
 
@@ -70,18 +71,20 @@ namespace Nameko {
 		}
 
 		T* get(size_t n) {
-			assert(m_size > n && "n must be smaller than block size.");
+			assert(
+				m_size > n &&
+				m_blockSize > n &&
+				"n must be smaller than the block size or the current size."
+			);
 			return reinterpret_cast<T*>(this->m_ptr) + n;
 		}
 	};
-
 
 	template<typename... Components>
 	class Chunk {
 		template<typename T>
 		using BlockType = Block<T, CHUNK_SIZE>;
 		using ComponentBlocks = std::tuple<BlockType<Components>...>;
-		using EntityBlock = BlockType<Entity>;
 
 		template<typename T, typename Tuple>
 		struct has_type;
@@ -90,40 +93,71 @@ namespace Nameko {
 
 	private:
 		ComponentBlocks m_blocks;
-		EntityBlock m_entities;
+		size_t m_size = 0;
 		const size_t ComponentCount = sizeof...(Components);
 
 	public:
 		Chunk() = default;
 		~Chunk() = default;
 
-		template<typename Component>
-		inline void AddComponent(Component& component) {
-			this->get<Component>()->create(std::move(component));
-		}
-
 		inline void AddComponents(Components&... components) {
-			(this->AddComponent(components), ...);
+			(this->get<Components>()->create(std::move(components)), ...);
+			m_size++;
 		}
 
+		template<typename Component>
+		inline Component& GetComponent(size_t n) {
+			return this->get<Component>()->at(n);
+		}
+
+		inline void RemoveComponents(size_t n) {
+			(this->get<Components>()->destroy(n), ...);
+			m_size--;
+		}
+
+		template<typename... Targets>
+		void iterateAll(const std::function<void(Targets&...)> lambda) {
+			for (size_t i = 0; i < m_size; ++i) {
+				lambda(this->GetComponent<Targets>(i)...);
+			}
+		}
+		
+	private:
 		template<typename Component>
 		inline BlockType<Component>* get() {
 			static_assert(has_type<BlockType<Component>, std::tuple<BlockType<Components>...>>::value, "Component is not contained in this Chunk.");
 			return &std::get<BlockType<Component>>(this->m_blocks);
 		}
+	};
 
-		/*
-		template<size_t i>
-		inline typename std::tuple_element<i, ComponentBlocks>::type* get() {
-			return &std::get<i>(this->m_blocks);
+	/*
+	template<typename... Components>
+	class Chunk {
+		template<typename T>
+		using BlockType = Block<T, CHUNK_SIZE>;
+		using EntityBlock = BlockType<Entity>;
+
+	private:
+		std::vector<std::unique_ptr<IBlock>> m_blocks;
+		EntityBlock m_entities;
+		const size_t ComponentCount = sizeof...(Components);
+
+	public:
+		Chunk() {
+			(m_blocks.push_back(std::make_unique<BlockType<Components>>()), ...);
 		}
+		~Chunk() = default;
 
 		inline void AddComponents(Components&... components) {
+			std::array<std::reference_wrapper<Components>, sizeof...(Components)> components_array
+				= { components... };
 			for (size_t i = 0; i < ComponentCount; i++) {
-				(this->get<i>()->create(components), ...);
+				auto block = static_cast<BlockType<Components>*>(m_blocks[i].get());
+				if (block) {
+					block->create(components_array[i]);
+				}
 			}
 		}
-		*/
-
 	};
+	*/
 }
