@@ -5,6 +5,8 @@ VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nameko", "Nameko\Nameko.vcxproj", "{9E958FE9-B0E2-4B01-B7E9-C25A9475DE8B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChunkTest", "ChunkTest\ChunkTest.vcxproj", "{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{9E958FE9-B0E2-4B01-B7E9-C25A9475DE8B}.Release|x64.Build.0 = Release|x64
 		{9E958FE9-B0E2-4B01-B7E9-C25A9475DE8B}.Release|x86.ActiveCfg = Release|Win32
 		{9E958FE9-B0E2-4B01-B7E9-C25A9475DE8B}.Release|x86.Build.0 = Release|Win32
+		{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}.Debug|x64.ActiveCfg = Debug|x64
+		{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}.Debug|x64.Build.0 = Debug|x64
+		{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}.Debug|x86.ActiveCfg = Debug|Win32
+		{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}.Debug|x86.Build.0 = Debug|Win32
+		{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}.Release|x64.ActiveCfg = Release|x64
+		{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}.Release|x64.Build.0 = Release|x64
+		{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}.Release|x86.ActiveCfg = Release|Win32
+		{FA940E46-3101-4DA4-83DA-3B0F4BDF5158}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

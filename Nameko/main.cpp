@@ -5,12 +5,13 @@
 
 struct Transform {
 public:
-	Transform(float x) : x(x) {
+	Transform(float x, float y) : x(x), y(y) {
 //		std::cout << "Trans Constructor" << std::endl;
 	}
 //	~Transform() { std::cout << "Trans Destructor" << std::endl; }
 
 	float x;
+	float y;
 };
 
 struct Mesh {
@@ -28,10 +29,10 @@ int main() {
 	using namespace Nameko;
 	
 	Chunk<Transform, Mesh> chunk;
-	Transform t1(1);
-	Transform t2(2);
-	Transform t3(3);
-	Transform t4(4);
+	Transform t1(1, 1);
+	Transform t2(2, 1);
+	Transform t3(3, 1);
+	Transform t4(4, 1);
 	Mesh m1(1);
 	Mesh m2(6);
 	Mesh m3(7);
@@ -65,7 +66,7 @@ int main() {
 	std::cout << "Iterate ECS" << std::endl;
 	start = std::chrono::system_clock::now();
 	for (int i = 0; i < 10240; i++) {
-		chunk.iterateAll<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
+		chunk.IterateAll<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
 			sum += (trans.x + mesh.y) * 0.5f;
 			});
 	}
@@ -86,15 +87,15 @@ int main() {
 	std::cout << sum << std::endl;
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 
-
 	/*
-	chunk.iterateAll<Transform, Mesh>([](Transform& trans, Mesh& mesh){
+	chunk.IterateAll<Transform, Mesh>([](Transform& trans, Mesh& mesh){
 		std::cout << trans.x << std::endl;
 	});
 
-	chunk.iterateAll<Mesh>([](Mesh& mesh) {
+	chunk.IterateAll<Mesh>([](Mesh& mesh) {
 		std::cout << mesh.y << std::endl;
 	});
 	*/
+
 	return 0;
 }

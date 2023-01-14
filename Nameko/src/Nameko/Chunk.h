@@ -17,18 +17,18 @@ namespace Nameko {
 		~IBlock() = default;
 	};
 
-	template<typename T, size_t blockSize = 512>
+	template<typename T, size_t MaxElement = 512>
 	class Block : public IBlock {
 	private:
 		void* m_ptr;
-		size_t m_blockSize;
-		size_t m_elementSize;
+		size_t m_maxElement;
+		size_t m_typeSize;
 		size_t m_totalSize;
 		size_t m_size;
 
 	public:
-		Block() : m_elementSize(sizeof(T)), m_blockSize(blockSize) {
-			this->m_totalSize = m_elementSize * m_blockSize;
+		Block() : m_typeSize(sizeof(T)), m_maxElement(MaxElement) {
+			this->m_totalSize = m_typeSize * m_maxElement;
 			this->m_size = 0;
 			this->m_ptr = malloc(m_totalSize);
 			std::cout << "Total Size : " << m_totalSize << "[bytes]" << std::endl;
@@ -40,6 +40,10 @@ namespace Nameko {
 		}
 
 		T& operator[](const int n) { return *this->get(n); }
+		size_t size() const { return this->m_size; }
+		size_t getMaxElement() const { return this->m_maxElement; }
+		size_t getTypeSize() const { return this->m_typeSize; }
+		size_t getTotalSize() const { return this->m_totalSize; }
 
 		template<typename Component>
 		inline T* create(Component&& component) {
@@ -73,10 +77,10 @@ namespace Nameko {
 		T* get(size_t n) {
 			assert(
 				m_size > n &&
-				m_blockSize > n &&
+				m_maxElement > n &&
 				"n must be smaller than the block size or the current size."
 			);
-			return reinterpret_cast<T*>(this->m_ptr) + n;
+			return static_cast<T*>(this->m_ptr) + n;
 		}
 	};
 
@@ -101,22 +105,22 @@ namespace Nameko {
 		~Chunk() = default;
 
 		inline void AddComponents(Components&... components) {
-			(this->get<Components>()->create(std::move(components)), ...);
+			(this->GetBlock<Components>()->create(std::move(components)), ...);
 			m_size++;
 		}
 
 		template<typename Component>
 		inline Component& GetComponent(size_t n) {
-			return this->get<Component>()->at(n);
+			return this->GetBlock<Component>()->at(n);
 		}
 
 		inline void RemoveComponents(size_t n) {
-			(this->get<Components>()->destroy(n), ...);
+			(this->GetBlock<Components>()->destroy(n), ...);
 			m_size--;
 		}
 
 		template<typename... Targets>
-		void iterateAll(const std::function<void(Targets&...)> lambda) {
+		void IterateAll(const std::function<void(Targets&...)> lambda) {
 			for (size_t i = 0; i < m_size; ++i) {
 				lambda(this->GetComponent<Targets>(i)...);
 			}
@@ -124,7 +128,7 @@ namespace Nameko {
 		
 	private:
 		template<typename Component>
-		inline BlockType<Component>* get() {
+		inline BlockType<Component>* GetBlock() {
 			static_assert(has_type<BlockType<Component>, std::tuple<BlockType<Components>...>>::value, "Component is not contained in this Chunk.");
 			return &std::get<BlockType<Component>>(this->m_blocks);
 		}
@@ -152,7 +156,7 @@ namespace Nameko {
 			std::array<std::reference_wrapper<Components>, sizeof...(Components)> components_array
 				= { components... };
 			for (size_t i = 0; i < ComponentCount; i++) {
-				auto block = static_cast<BlockType<Components>*>(m_blocks[i].get());
+				auto block = static_cast<BlockType<Components>*>(m_blocks[i].GetBlock());
 				if (block) {
 					block->create(components_array[i]);
 				}
