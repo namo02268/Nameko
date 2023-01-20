@@ -5,7 +5,7 @@
 namespace Nameko {
 	using Entity = uint64_t;	// Upper 32bit = CCID, Lower 32it = EID
 	using EID = uint32_t;		// Entity ID
-	using CIID = uint32_t;		// Component Instance ID
+	using CIID = uint32_t;		// T Instance ID
 
 	static inline EID GetEID(const Entity e) {
 		return e & 0xffffffffUL;

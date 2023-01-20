@@ -2,23 +2,19 @@
 
 #include <memory>
 #include <cassert>
-#include <tuple>
+#include <iostream>
 #include <iterator>
 #include <functional>
 
 #include "Nameko/Config.h"
 #include "Nameko/Entity.h"
+#include "Nameko/IdGenerator.h"
 
-#include <iostream>
 
+#include <typeinfo>
 namespace Nameko {
-	class IBlock {
-	public:
-		~IBlock() = default;
-	};
-
-	template<typename T, size_t MaxElement = 512>
-	class Block : public IBlock {
+	template<typename T, size_t MaxElement>
+	class Block {
 	private:
 		void* m_ptr;
 		size_t m_maxElement;
@@ -33,9 +29,15 @@ namespace Nameko {
 			this->m_ptr = malloc(m_totalSize);
 			std::cout << "Total Size : " << m_totalSize << "[bytes]" << std::endl;
 		}
+
 		Block(const Block&) = delete;
 		Block& operator=(const Block&) = delete;
 		~Block() {
+			std::cout << "Free Block" << std::endl;
+			for (size_t i = 0; i < m_size; i++) {
+				this->at(i).~T();
+			}
+
 			free(this->m_ptr);
 		}
 
@@ -45,15 +47,16 @@ namespace Nameko {
 		size_t getTypeSize() const { return this->m_typeSize; }
 		size_t getTotalSize() const { return this->m_totalSize; }
 
-		template<typename Component>
-		inline T* create(Component&& component) {
-			auto ptr = reinterpret_cast<T*>(this->m_ptr) + m_size;
-			::new(ptr) T(std::move(component));
+		template<typename T>
+		inline T* create(T&& component) {
+			auto ptr = static_cast<T*>(this->m_ptr) + m_size;
+			::new(ptr) T(std::forward<T>(component));
 			this->m_size++;
 			return ptr;
 		}
 
 		inline void destroy(size_t n) {
+			this->at(n).~T();
 			if (n != this->m_size - 1) {
 				this->at(n) = this->at(this->m_size - 1);
 			}
@@ -83,85 +86,54 @@ namespace Nameko {
 			return static_cast<T*>(this->m_ptr) + n;
 		}
 	};
-
-	template<typename... Components>
+	
+	template<size_t Size, typename... Types>
 	class Chunk {
 		template<typename T>
-		using BlockType = Block<T, CHUNK_SIZE>;
-		using ComponentBlocks = std::tuple<BlockType<Components>...>;
-
+		using BlockType = Block<T, Size>;
+		using Blocks = std::tuple<BlockType<Types>...>;
 		template<typename T, typename Tuple>
 		struct has_type;
 		template<typename T, typename... Ts>
 		struct has_type<T, std::tuple<Ts...>> : std::disjunction<std::is_same<T, Ts>...> {};
 
 	private:
-		ComponentBlocks m_blocks;
+		Blocks m_blocks;
 		size_t m_size = 0;
-		const size_t ComponentCount = sizeof...(Components);
+		const size_t TypeCount = sizeof...(Types);
 
 	public:
 		Chunk() = default;
+
 		~Chunk() = default;
 
-		inline void AddComponents(Components&... components) {
-			(this->GetBlock<Components>()->create(std::move(components)), ...);
+		void Add(Types&&... components) {
+			(this->GetBlock<Types>()->create(std::forward<Types>(components)), ...);
 			m_size++;
 		}
 
-		template<typename Component>
-		inline Component& GetComponent(size_t n) {
-			return this->GetBlock<Component>()->at(n);
+		template<typename T>
+		T& Get(size_t n) {
+			return this->GetBlock<T>()->at(n);
 		}
 
-		inline void RemoveComponents(size_t n) {
-			(this->GetBlock<Components>()->destroy(n), ...);
+		void Remove(size_t n) {
+			(this->GetBlock<Types>()->destroy(n), ...);
 			m_size--;
 		}
 
 		template<typename... Targets>
 		void IterateAll(const std::function<void(Targets&...)> lambda) {
 			for (size_t i = 0; i < m_size; ++i) {
-				lambda(this->GetComponent<Targets>(i)...);
+				lambda(this->Get<Targets>(i)...);
 			}
 		}
 		
 	private:
-		template<typename Component>
-		inline BlockType<Component>* GetBlock() {
-			static_assert(has_type<BlockType<Component>, std::tuple<BlockType<Components>...>>::value, "Component is not contained in this Chunk.");
-			return &std::get<BlockType<Component>>(this->m_blocks);
-		}
-	};
-
-	/*
-	template<typename... Components>
-	class Chunk {
 		template<typename T>
-		using BlockType = Block<T, CHUNK_SIZE>;
-		using EntityBlock = BlockType<Entity>;
-
-	private:
-		std::vector<std::unique_ptr<IBlock>> m_blocks;
-		EntityBlock m_entities;
-		const size_t ComponentCount = sizeof...(Components);
-
-	public:
-		Chunk() {
-			(m_blocks.push_back(std::make_unique<BlockType<Components>>()), ...);
-		}
-		~Chunk() = default;
-
-		inline void AddComponents(Components&... components) {
-			std::array<std::reference_wrapper<Components>, sizeof...(Components)> components_array
-				= { components... };
-			for (size_t i = 0; i < ComponentCount; i++) {
-				auto block = static_cast<BlockType<Components>*>(m_blocks[i].GetBlock());
-				if (block) {
-					block->create(components_array[i]);
-				}
-			}
+		BlockType<T>* GetBlock() {
+			static_assert(has_type<BlockType<T>, std::tuple<BlockType<Types>...>>::value, "Component is not contained in this Chunk.");
+			return &std::get<BlockType<T>>(this->m_blocks);
 		}
 	};
-	*/
 }

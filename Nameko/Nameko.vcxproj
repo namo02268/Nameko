@@ -138,9 +138,12 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Nameko\Archtype.h" />
     <ClInclude Include="src\Nameko\Chunk.h" />
     <ClInclude Include="src\Nameko\Config.h" />
+    <ClInclude Include="src\Nameko\ECS.h" />
     <ClInclude Include="src\Nameko\Entity.h" />
+    <ClInclude Include="src\Nameko\IdGenerator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
