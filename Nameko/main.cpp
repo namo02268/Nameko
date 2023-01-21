@@ -1,4 +1,3 @@
-#include "Nameko/Chunk.h"
 #include "Nameko/Entity.h"
 #include "Nameko/IdGenerator.h"
 #include "Nameko/Archtype.h"
@@ -8,39 +7,39 @@
 struct Transform {
 public:
 	Transform(float x, float y) : x(x), y(y) {
-		std::cout << "Transform Constructor" << std::endl;
+//		std::cout << "Transform Constructor" << std::endl;
 	}
 
 	Transform(const Transform& other) {
 		this->x = other.x;
 		this->y = other.y;
-		std::cout << "Transform Copy Constructor" << std::endl;
+//		std::cout << "Transform Copy Constructor" << std::endl;
 	}
 
 	Transform(Transform&& other) noexcept {
 		this->x = other.x;
 		this->y = other.y;
-		std::cout << "Transform Move Constructor" << std::endl;
+//		std::cout << "Transform Move Constructor" << std::endl;
 	}
 
 	Transform& operator=(const Transform& other) {
 		this->x = other.x;
 		this->y = other.y;
-		std::cout << "Transform Copy= Constructor" << std::endl;
+//		std::cout << "Transform Copy= Constructor" << std::endl;
 		return *this;
 	}
 
 	Transform& operator=(Transform&& other) noexcept {
 		this->x = other.x;
 		this->y = other.y;
-		std::cout << "Transform Move= Constructor" << std::endl;
+//		std::cout << "Transform Move= Constructor" << std::endl;
 		return *this;
 	}
 
 
 
 	~Transform() {
-		std::cout << "Transform Destructor" << std::endl;
+//		std::cout << "Transform Destructor" << std::endl;
 	}
 
 	float x;
@@ -54,54 +53,30 @@ public:
 	float y;
 };
 
-template<size_t...>
-struct seq{};
-
-template<size_t N, size_t... S>
-struct gens : gens<N -1, N - 1, S...> {};
-
-template<size_t... S>
-struct gens<0, S...> {
-	typedef seq<S...> type;
-};
-
-template<size_t... S, typename... Args>
-auto CallFunc(seq<S...>, std::tuple<Args...>&& params) {
-	Nameko::Chunk<std::remove_reference_t<decltype(std::get<S>(params))>...> chunk;
+template<typename Tuple, size_t... S>
+auto make_chunk_impl(Tuple&& t, std::index_sequence<S...>) {
+	return new Nameko::Chunk<Nameko::CHUNK_SIZE, std::remove_reference_t<decltype(std::get<S>(t))>...>;
 }
 
-template<typename... Args>
-struct ChunkGenerator {
-	ChunkGenerator(std::tuple<Args...> params) : params(params){}
-	std::tuple<Args...> params;
-
-	template<size_t... S>
-	void callFunc(seq<S...>) {
-		Nameko::Chunk<std::remove_reference_t<decltype(std::get<S>(params))>...> chunk;
-	}
-
-	void delayed_dispatch() {
-		callFunc(typename gens<sizeof...(Args)>::type());
-	}
-};
+template<typename Tuple>
+auto make_chunk(Tuple&& t) {
+	return make_chunk_impl(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{});
+}
 
 int main() {
 	using namespace Nameko;
+	EntityManager eManager;
 
-	Archtype<Transform, Mesh> arche;
-	Entity e1 = 1;
-	Entity e2 = 2;
-	Entity e3 = 3;
-	Entity e4 = 4;
-	arche.AddComponents(e1, Transform(1, 1), Mesh(1));
-	arche.AddComponents(e2, Transform(2, 2), Mesh(2));
-	arche.AddComponents(e3, Transform(3, 3), Mesh(3));
-	arche.AddComponents(e4, Transform(4, 4), Mesh(4));
+	Transform t1(1, 2);
+	Mesh m1(1);
 
-	std::cout << arche.GetComponent<Transform>(e1).x << std::endl;
-	std::cout << arche.GetComponent<Transform>(e2).x << std::endl;
-	std::cout << arche.GetComponent<Transform>(e3).x << std::endl;
-	std::cout << arche.GetComponent<Transform>(e4).x << std::endl;
+	auto test = std::make_tuple(t1, m1);
+
+	auto chunk = make_chunk(test);
+
+	chunk->Add(std::move(t1), std::move(m1));
+
+	delete chunk;
 
 	/*
 	std::chrono::system_clock::time_point start, end;

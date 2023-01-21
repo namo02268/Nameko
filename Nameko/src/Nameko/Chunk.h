@@ -48,9 +48,9 @@ namespace Nameko {
 		size_t getTotalSize() const { return this->m_totalSize; }
 
 		template<typename T>
-		inline T* create(T&& component) {
+		inline T* create(T&& t) {
 			auto ptr = static_cast<T*>(this->m_ptr) + m_size;
-			::new(ptr) T(std::forward<T>(component));
+			::new(ptr) T(std::forward<T>(t));
 			this->m_size++;
 			return ptr;
 		}
@@ -61,6 +61,11 @@ namespace Nameko {
 				this->at(n) = this->at(this->m_size - 1);
 			}
 			this->m_size--;
+		}
+
+		inline void replace(size_t n, T&& t) {
+			this->at(n).~T();
+			this->at(n) = t;
 		}
 
 		inline T* data() {
@@ -107,8 +112,8 @@ namespace Nameko {
 
 		~Chunk() = default;
 
-		void Add(Types&&... components) {
-			(this->GetBlock<Types>()->create(std::forward<Types>(components)), ...);
+		void Add(Types&&... types) {
+			(this->GetBlock<Types>()->create(std::forward<Types>(types)), ...);
 			m_size++;
 		}
 
@@ -120,6 +125,10 @@ namespace Nameko {
 		void Remove(size_t n) {
 			(this->GetBlock<Types>()->destroy(n), ...);
 			m_size--;
+		}
+
+		void Replace(Types&&... types) {
+			(this->GetBlock<Types>()->replace(0, std::forward<Types>(types)), ...);
 		}
 
 		template<typename... Targets>

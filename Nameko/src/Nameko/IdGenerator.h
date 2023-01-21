@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "Nameko/Config.h"
 
 namespace Nameko {
 	class IdGenerator {
@@ -14,4 +15,9 @@ namespace Nameko {
 		template<typename... Types>
 		static inline const ArcheID GetArche = (GetFamily<Types> | ...);
 	};
+
+	inline EntityID GetEntityID() {
+		static EntityID id = 1;
+		return id++;
+	}
 }
