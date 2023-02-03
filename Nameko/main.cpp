@@ -54,13 +54,13 @@ public:
 };
 
 template<typename Tuple, size_t... S>
-auto make_chunk_impl(Tuple&& t, std::index_sequence<S...>) {
-	return new Nameko::Chunk<Nameko::CHUNK_SIZE, std::remove_reference_t<decltype(std::get<S>(t))>...>;
+auto make_arche_impl(Tuple&& t, std::index_sequence<S...>) {
+	return new Nameko::Archetype<std::remove_reference_t<decltype(std::get<S>(t))>...>;
 }
 
 template<typename Tuple>
-auto make_chunk(Tuple&& t) {
-	return make_chunk_impl(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{});
+auto make_arche(Tuple&& t) {
+	return make_arche_impl(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{});
 }
 
 int main() {
@@ -70,13 +70,63 @@ int main() {
 	Transform t1(1, 2);
 	Mesh m1(1);
 
-	auto test = std::make_tuple(t1, m1);
+	auto arche = make_arche(std::tuple(t1, m1));
 
-	auto chunk = make_chunk(test);
+	auto e1 = eManager.CreateEntity();
+	arche->AddComponents(e1, Transform(1, 1), Mesh(1));
+	auto e2 = eManager.CreateEntity();
+	arche->AddComponents(e2, Transform(2, 2), Mesh(2));
+	auto e3 = eManager.CreateEntity();
+	arche->AddComponents(e3, Transform(3, 3), Mesh(3));
+	auto e4 = eManager.CreateEntity();
+	arche->AddComponents(e4, Transform(4, 4), Mesh(4));
+	auto e5 = eManager.CreateEntity();
+	arche->AddComponents(e5, Transform(5, 5), Mesh(5));
+	auto e6 = eManager.CreateEntity();
+	arche->AddComponents(e6, Transform(6, 6), Mesh(6));
+	auto e7 = eManager.CreateEntity();
+	arche->AddComponents(e7, Transform(7, 7), Mesh(7));
 
-	chunk->Add(std::move(t1), std::move(m1));
+	std::cout << arche->GetComponent<Transform>(e1).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e2).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e3).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e4).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e5).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e6).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e7).x << std::endl;
 
-	delete chunk;
+	std::cout << "------------------------------" << std::endl;
+
+	arche->RemoveComponents(e1);
+
+	std::cout << arche->GetComponent<Transform>(e2).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e3).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e4).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e5).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e6).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e7).x << std::endl;
+
+	std::cout << "------------------------------" << std::endl;
+
+	arche->RemoveComponents(e3);
+
+	std::cout << arche->GetComponent<Transform>(e2).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e4).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e5).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e6).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e7).x << std::endl;
+
+	std::cout << "------------------------------" << std::endl;
+
+	arche->RemoveComponents(e7);
+
+	std::cout << arche->GetComponent<Transform>(e2).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e4).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e5).x << std::endl;
+	std::cout << arche->GetComponent<Transform>(e6).x << std::endl;
+
+
+	delete arche;
 
 	/*
 	std::chrono::system_clock::time_point start, end;
