@@ -63,8 +63,8 @@ namespace Nameko {
 			this->m_size--;
 		}
 
-		inline void replace(size_t n, T&& t) {
-			this->at(n) = t;
+		inline void replace(size_t n, T* t) {
+			this->at(n) = *t;
 		}
 
 		inline T* data() {
@@ -117,12 +117,17 @@ namespace Nameko {
 		}
 
 		template<typename T>
-		T& Get(size_t n) {
+		T* Get(size_t n) {
+			return this->GetBlock<T>()->get(n);
+		}
+
+		template<typename T>
+		T& At(size_t n) {
 			return this->GetBlock<T>()->at(n);
 		}
 
-		auto GetAll(size_t n) -> std::tuple<Types...> {
-			return { this->GetBlock<Types>()->at(n)... };
+		std::tuple<Types*...> GetAll(size_t n) {
+			return { this->GetBlock<Types>()->get(n)... };
 		}
 
 		void Remove(size_t n) {
@@ -130,14 +135,14 @@ namespace Nameko {
 			m_size--;
 		}
 
-		void Replace(size_t n, Types&&... types) {
-			(this->GetBlock<Types>()->replace(n, std::forward<Types>(types)), ...);
+		void Replace(size_t n, Types*... types) {
+			(this->GetBlock<Types>()->replace(n, types), ...);
 		}
 
 		template<typename... Targets>
 		void IterateAll(const std::function<void(Targets&...)> lambda) {
 			for (size_t i = 0; i < m_size; ++i) {
-				lambda(this->Get<Targets>(i)...);
+				lambda(this->At<Targets>(i)...);
 			}
 		}
 		

@@ -7,7 +7,8 @@
 
 namespace Nameko {
 	class BaseArchtype {
-//		virtual ~BaseArchtype() = default;
+	public:
+		virtual ~BaseArchtype() = default;
 	};
 
 	template<typename... Components>
@@ -21,7 +22,6 @@ namespace Nameko {
 		DenseEntities m_entities;
 		EntityToInstance m_entityToInstance;
 
-		ArcheID m_id = 0;
 		size_t m_size = 0;
 		size_t m_chunkNum = 0;
 
@@ -29,7 +29,7 @@ namespace Nameko {
 		Archetype() = default;
 		~Archetype() = default;
 
-		void AddComponents(Entity& e, Components&&... components) {
+		void AddComponents(Entity e, Components&&... components) {
 			m_chunkNum = m_size / CHUNK_SIZE;
 			if (m_chunks.size() <= m_chunkNum) {
 				std::cout << "Add Chunk" << std::endl;
@@ -47,9 +47,13 @@ namespace Nameko {
 		}
 
 		template<typename T>
-		T& GetComponent(Entity e) {
+		T* GetComponent(Entity e) {
 			auto size = m_entityToInstance[e];
 			return m_chunks[size / CHUNK_SIZE]->Get<T>(size % CHUNK_SIZE);
+		}
+
+		std::tuple<Components*...> GetComponents(Entity e) {
+			return { this->GetComponent<Components>(e)... };
 		}
 
 		void RemoveComponents(Entity e) {
@@ -64,12 +68,20 @@ namespace Nameko {
 			m_chunks[current_chunk_size]->Remove(current_size);
 
 			auto entity = m_entities[current_chunk_size]->Get<Entity>(current_size);
-			m_entities[chunk_size]->Replace(size, std::forward<Entity>(entity));
+			m_entities[chunk_size]->Replace(size, entity);
 			m_entities[current_chunk_size]->Remove(current_size);
 
-			m_entityToInstance[entity] = m_entityToInstance[e];
+			m_entityToInstance[*entity] = m_entityToInstance[e];
 
 			m_size--;
 		}
+
+		template<typename... Targets>
+		void IterateAll(const std::function<void(Targets&...)>&& lambda) {
+			for (auto& chunk : m_chunks) {
+				chunk->IterateAll<Targets...>(lambda);
+			}
+		}
+
 	};
 }

@@ -6,14 +6,21 @@
 namespace Nameko {
 	class IdGenerator {
 	private:
-		static inline FamilyID counter = 1;
+		static inline FamilyID counter = 0;
+
+		template<typename T>
+		static inline const FamilyID familyCounter = counter++;
 
 	public:
 		template<typename T>
-		static inline const FamilyID GetFamily = counter <<= 1;
+		static inline FamilyID GetFamily() {
+			return 1 << familyCounter<T>;
+		}
 
 		template<typename... Types>
-		static inline const ArcheID GetArche = (GetFamily<Types> | ...);
+		static inline ArcheID GetArche() {
+			return (GetFamily<Types>() | ...);
+		}
 	};
 
 	inline EntityID GetEntityID() {
