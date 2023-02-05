@@ -55,6 +55,12 @@ namespace Nameko {
 			return ptr;
 		}
 
+		inline T* create(T* t) {
+			auto ptr = static_cast<T*>(this->m_ptr) + m_size;
+			::new(ptr) T(*t);
+			return ptr;
+		}
+
 		inline void destroy(size_t n) {
 			this->at(n).~T();
 			if (n != this->m_size - 1) {
@@ -114,6 +120,10 @@ namespace Nameko {
 		void Add(Types&&... types) {
 			(this->GetBlock<Types>()->create(std::forward<Types>(types)), ...);
 			m_size++;
+		}
+		
+		void Add(Types*... types) {
+			(this->GetBlock<Types>()->create(types), ...);
 		}
 
 		template<typename T>

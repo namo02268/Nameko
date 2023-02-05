@@ -3,44 +3,46 @@
 #include "Nameko/Archtype.h"
 #include "Nameko/ECS.h"
 
+#include <bitset>
+
 #include<chrono>
 
 struct Transform {
 public:
 	Transform(float x, float y) : x(x), y(y) {
-//		std::cout << "Transform Constructor" << std::endl;
+		std::cout << "Transform Constructor" << std::endl;
 	}
 
 	Transform(const Transform& other) {
 		this->x = other.x;
 		this->y = other.y;
-//		std::cout << "Transform Copy Constructor" << std::endl;
+		std::cout << "Transform Copy Constructor" << std::endl;
 	}
 
 	Transform(Transform&& other) noexcept {
 		this->x = other.x;
 		this->y = other.y;
-//		std::cout << "Transform Move Constructor" << std::endl;
+		std::cout << "Transform Move Constructor" << std::endl;
 	}
 
 	Transform& operator=(const Transform& other) {
 		this->x = other.x;
 		this->y = other.y;
-//		std::cout << "Transform Copy= Constructor" << std::endl;
+		std::cout << "Transform Copy= Constructor" << std::endl;
 		return *this;
 	}
 
 	Transform& operator=(Transform&& other) noexcept {
 		this->x = other.x;
 		this->y = other.y;
-//		std::cout << "Transform Move= Constructor" << std::endl;
+		std::cout << "Transform Move= Constructor" << std::endl;
 		return *this;
 	}
 
 
 
 	~Transform() {
-//		std::cout << "Transform Destructor" << std::endl;
+		std::cout << "Transform Destructor" << std::endl;
 	}
 
 	float x;
@@ -69,11 +71,19 @@ int main() {
 	EntityManager eManager;
 	Transform t1(3, 3);
 	Mesh m1(1);
-	auto arche = make_arche(std::tuple(t1, m1));
 	auto e = eManager.CreateEntity();
 
-	delete arche;
+	ECS* ecs = new ECS;
+//	ecs->AddComponents(e, Transform(3, 3), Mesh(1));
+	ecs->AddComponentsPtr(e, &t1, &m1);
 
+
+	delete ecs;
+
+	/*
+	auto arche = make_arche(std::tuple(t1, m1));
+	delete arche;
+	*/
 
 	/*
 	std::chrono::system_clock::time_point start, end;
