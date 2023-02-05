@@ -46,30 +46,13 @@ namespace Nameko {
 			m_size++;
 		}
 
-		void AddComponentsPtr(Entity e, Components*... components) {
-			m_chunkNum = m_size / CHUNK_SIZE;
-			if (m_chunks.size() <= m_chunkNum) {
-				std::cout << "Add Chunk" << std::endl;
-				auto componentChunk = std::make_unique<Chunk<CHUNK_SIZE, Components...>>();
-				m_chunks.emplace_back(std::move(componentChunk));
-
-				auto entityChunk = std::make_unique<Chunk<CHUNK_SIZE, Entity>>();
-				m_entities.emplace_back(std::move(entityChunk));
-			}
-
-			m_entityToInstance[e] = m_size;
-			m_chunks[m_chunkNum]->Add(components...);
-			m_entities[m_chunkNum]->Add(std::forward<Entity>(e));
-			m_size++;
-		}
-
 		template<typename T>
-		T* GetComponent(Entity e) {
+		T& GetComponent(Entity e) {
 			auto size = m_entityToInstance[e];
-			return m_chunks[size / CHUNK_SIZE]->Get<T>(size % CHUNK_SIZE);
+			return m_chunks[size / CHUNK_SIZE]->At<T>(size % CHUNK_SIZE);
 		}
 
-		std::tuple<Components*...> GetComponents(Entity e) {
+		std::tuple<Components&...> GetComponents(Entity e) {
 			return { this->GetComponent<Components>(e)... };
 		}
 

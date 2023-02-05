@@ -69,22 +69,25 @@ auto make_arche(Tuple&& t) {
 int main() {
 	using namespace Nameko;
 	EntityManager eManager;
-	Transform t1(3, 3);
-	Mesh m1(1);
+//	Transform t1(3, 3);
+//	Mesh m1(1);
 	auto e = eManager.CreateEntity();
 
 	ECS* ecs = new ECS;
-//	ecs->AddComponents(e, Transform(3, 3), Mesh(1));
-	ecs->AddComponentsPtr(e, &t1, &m1);
-
-
+	ecs->AddComponents(e, Transform(3, 3), Mesh(1));
+//	ecs->AddComponentsPtr(e, &t1, &m1);
 	delete ecs;
 
 	/*
 	auto arche = make_arche(std::tuple(t1, m1));
+
+	arche->AddComponents(e, Transform(3, 3), Mesh(3));
+	std::cout << std::get<Transform&>(arche->GetComponents(e)).x << std::endl;
+	std::get<Transform&>(arche->GetComponents(e)).x = 5;
+	std::cout << std::get<Transform&>(arche->GetComponents(e)).x << std::endl;
+
 	delete arche;
 	*/
-
 	/*
 	std::chrono::system_clock::time_point start, end;
 
