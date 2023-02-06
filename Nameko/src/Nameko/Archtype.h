@@ -6,82 +6,52 @@
 #include "Nameko/Chunk.h"
 
 namespace Nameko {
-	class BaseArchtype {
-	public:
-		virtual ~BaseArchtype() = default;
-	};
-
-	template<typename... Components>
-	class Archetype : public BaseArchtype {
-		using Chunks = std::vector<std::unique_ptr<Chunk<CHUNK_SIZE, Components...>>>;
-		using DenseEntities = std::vector<std::unique_ptr<Chunk<CHUNK_SIZE, Entity>>>;
-		using EntityToInstance = std::array<size_t, MAX_ENTITIES>;
+	class Archetype {
+		using Chunk = std::vector<std::unique_ptr<Pool>>;
 
 	private:
-		Chunks m_chunks;
-		DenseEntities m_entities;
-		EntityToInstance m_entityToInstance;
+		std::vector<Chunk> m_chunks;
+		std::vector<std::pair<FamilyID, size_t>> m_families;
+		std::array<uint32_t, MAX_COMPONENTS> m_familyToPool;
+		std::array<size_t, MAX_ENTITIES> m_entityToInstance;
 
-		size_t m_size = 0;
-		size_t m_chunkNum = 0;
+		size_t m_size;
+		size_t m_chunkSize;
 
 	public:
 		Archetype() = default;
 		~Archetype() = default;
 
-		void AddComponents(Entity e, Components&&... components) {
-			m_chunkNum = m_size / CHUNK_SIZE;
-			if (m_chunks.size() <= m_chunkNum) {
+		void ResistFamily(FamilyID id, size_t size) {
+			static unsigned int count = 0;
+			m_families.emplace_back(std::make_pair(id, size));
+			m_familyToPool[id] = count;
+			count++;
+		}
+
+		template<typename... Components>
+		void CreateInstance(Entity e, Components&&... components) {
+			m_chunkSize = m_size / CHUNK_SIZE;
+			if (m_chunks.size() <= m_chunkSize) {
 				std::cout << "Add Chunk" << std::endl;
-				auto componentChunk = std::make_unique<Chunk<CHUNK_SIZE, Components...>>();
-				m_chunks.emplace_back(std::move(componentChunk));
-				
-				auto entityChunk = std::make_unique<Chunk<CHUNK_SIZE, Entity>>();
-				m_entities.emplace_back(std::move(entityChunk));
+				Chunk chunk;
+				(chunk.emplace_back(std::move(std::make_unique<Pool>(sizeof(Components), CHUNK_SIZE))), ...);
+				(m_families.emplace_back(std::make_pair(IdGenerator::GetFamily<Components>(), sizeof(Components))), ...);
+				unsigned int count = 0;
+				((m_familyToPool[IdGenerator::GetFamily<Components>()] = count++), ...);
+				this->m_chunks.emplace_back(std::move(chunk));
 			}
 
 			m_entityToInstance[e] = m_size;
-			m_chunks[m_chunkNum]->Add(std::forward<Components>(components)...);
-			m_entities[m_chunkNum]->Add(std::forward<Entity>(e));
+			(::new(m_chunks[m_chunkSize][m_familyToPool[IdGenerator::GetFamily<Components>()]]->get(m_size % CHUNK_SIZE)) Components(std::forward<Components>(components)), ...);
+
 			m_size++;
 		}
 
-		template<typename T>
-		T& GetComponent(Entity e) {
+		template<typename
+		void* RetrieveInstance(Entity e, FamilyID family) {
 			auto size = m_entityToInstance[e];
-			return m_chunks[size / CHUNK_SIZE]->At<T>(size % CHUNK_SIZE);
+			return m_chunks[size / CHUNK_SIZE][m_familyToPool[family]]->get(size % CHUNK_SIZE);
 		}
-
-		std::tuple<Components&...> GetComponents(Entity e) {
-			return { this->GetComponent<Components>(e)... };
-		}
-
-		void RemoveComponents(Entity e) {
-			auto n = m_entityToInstance[e];
-			auto chunk_size = n / CHUNK_SIZE;
-			auto size = n % CHUNK_SIZE;
-			auto current_chunk_size = (m_size - 1) / CHUNK_SIZE;
-			auto current_size = (m_size - 1) % CHUNK_SIZE;
-
-			auto components = m_chunks[current_chunk_size]->GetAll(current_size);
-			std::apply(&Chunk<CHUNK_SIZE, Components...>::Replace, std::tuple_cat(std::make_tuple(m_chunks[chunk_size].get(), size), components));
-			m_chunks[current_chunk_size]->Remove(current_size);
-
-			auto entity = m_entities[current_chunk_size]->Get<Entity>(current_size);
-			m_entities[chunk_size]->Replace(size, entity);
-			m_entities[current_chunk_size]->Remove(current_size);
-
-			m_entityToInstance[*entity] = m_entityToInstance[e];
-
-			m_size--;
-		}
-
-		template<typename... Targets>
-		void IterateAll(const std::function<void(Targets&...)>&& lambda) {
-			for (auto& chunk : m_chunks) {
-				chunk->IterateAll<Targets...>(lambda);
-			}
-		}
-
 	};
 }
