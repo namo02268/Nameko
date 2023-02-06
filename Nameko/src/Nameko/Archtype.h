@@ -30,7 +30,7 @@ namespace Nameko {
 		}
 
 		template<typename... Components>
-		void CreateInstance(Entity e, Components&&... components) {
+		void AddComponents(Entity e, Components&&... components) {
 			m_chunkSize = m_size / CHUNK_SIZE;
 			if (m_chunks.size() <= m_chunkSize) {
 				std::cout << "Add Chunk" << std::endl;
@@ -48,8 +48,8 @@ namespace Nameko {
 			m_size++;
 		}
 
-		template<typename
-		void* RetrieveInstance(Entity e, FamilyID family) {
+		template<typename Component>
+		Component* GetComponent(Entity e) {
 			auto size = m_entityToInstance[e];
 			return m_chunks[size / CHUNK_SIZE][m_familyToPool[family]]->get(size % CHUNK_SIZE);
 		}

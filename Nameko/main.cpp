@@ -66,7 +66,7 @@ int main() {
 	auto arche = new Archetype;
 
 	for (int i = 0; i < 3; i++) {
-		arche->CreateInstance(i, Transform(i, i), Mesh(i));
+		arche->AddComponents(i, Transform(i, i), Mesh(i));
 	}
 
 	/*
