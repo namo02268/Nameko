@@ -65,17 +65,22 @@ int main() {
 
 	auto arche = new Archetype;
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 5; i++) {
 		arche->AddComponents(i, Transform(i, i), Mesh(i));
 	}
+	std::cout << arche->GetComponent<Transform>(0)->x << std::endl;
+	std::cout << arche->GetComponent<Transform>(1)->x << std::endl;
+	std::cout << arche->GetComponent<Transform>(2)->x << std::endl;
+	std::cout << arche->GetComponent<Transform>(3)->x << std::endl;
+	std::cout << arche->GetComponent<Transform>(4)->x << std::endl;
 
-	/*
-	std::cout << "--------------------------------------" << std::endl;
+	arche->RemoveComponents(2);
 
-	std::cout << arche->RetrieveInstance(0, IdGenerator::GetFamily<Transform>()) << std::endl;
-	std::cout << arche->RetrieveInstance(1, IdGenerator::GetFamily<Transform>()) << std::endl;
-	std::cout << arche->RetrieveInstance(2, IdGenerator::GetFamily<Transform>()) << std::endl;
-	*/
+	std::cout << arche->GetComponent<Transform>(0)->x << std::endl;
+	std::cout << arche->GetComponent<Transform>(1)->x << std::endl;
+	std::cout << arche->GetComponent<Transform>(3)->x << std::endl;
+	std::cout << arche->GetComponent<Transform>(4)->x << std::endl;
+
 
 	delete arche;
 
