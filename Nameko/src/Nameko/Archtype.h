@@ -39,7 +39,7 @@ namespace Nameko {
 
 			m_entityToInstance[e] = m_size;
 			(::new(m_chunks[m_chunkSize][m_familyToPool[IdGenerator::GetFamily<Components>()]]->get(m_size % CHUNK_SIZE)) Components(std::forward<Components>(components)), ...);
-			this->m_entities[m_chunkSize]->get(m_size % CHUNK_SIZE)
+			::new(this->m_entities[m_chunkSize]->get(m_size % CHUNK_SIZE)) Entity(e);
 			m_size++;
 		}
 
@@ -61,6 +61,12 @@ namespace Nameko {
 				auto src = m_chunks[current_chunk_size][m_familyToPool[family.first]]->get(current_size);
 				std::memcpy(dst, src, family.second);
 			}
+
+			auto dst = m_entities[chunk_size]->get(size);
+			auto src = m_entities[current_chunk_size]->get(current_size);
+			std::memcpy(dst, src, sizeof(Entity));
+
+			m_entityToInstance[*static_cast<Entity*>(src)] = m_entityToInstance[e];
 
 			m_size--;
 		}
