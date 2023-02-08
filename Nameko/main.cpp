@@ -7,6 +7,10 @@
 
 #include<chrono>
 
+#include <map>
+#include <typeinfo>
+#include <typeindex>
+
 struct Transform {
 public:
 	Transform(float x, float y) : x(x), y(y) {
@@ -66,16 +70,24 @@ auto make_arche(Tuple&& t) {
 	return make_arche_impl(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{});
 }
 
+template<typename T>
+struct Test {
+	using type = T;
+};
+
 int main() {
 	using namespace Nameko;
 	EntityManager eManager;
 //	Transform t1(3, 3);
 //	Mesh m1(1);
-	auto e = eManager.CreateEntity();
+	auto e1 = eManager.CreateEntity();
+	auto e2 = eManager.CreateEntity();
+	auto e3 = eManager.CreateEntity();
 
 	ECS* ecs = new ECS;
-	ecs->AddComponents(e, Transform(3, 3), Mesh(1));
-//	ecs->AddComponentsPtr(e, &t1, &m1);
+	ecs->AddComponents(e1, Transform(1, 1), Mesh(1));
+	ecs->AddComponents(e2, Transform(2, 2), Mesh(1));
+	ecs->AddComponents(e3, Transform(3, 3), Mesh(1));
 	delete ecs;
 
 	/*
