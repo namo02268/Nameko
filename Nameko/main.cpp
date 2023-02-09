@@ -14,39 +14,39 @@
 struct Transform {
 public:
 	Transform(float x, float y) : x(x), y(y) {
-		std::cout << "Transform Constructor" << std::endl;
+//		std::cout << "Transform Constructor" << std::endl;
 	}
 
 	Transform(const Transform& other) {
 		this->x = other.x;
 		this->y = other.y;
-		std::cout << "Transform Copy Constructor" << std::endl;
+//		std::cout << "Transform Copy Constructor" << std::endl;
 	}
 
 	Transform(Transform&& other) noexcept {
 		this->x = other.x;
 		this->y = other.y;
-		std::cout << "Transform Move Constructor" << std::endl;
+//		std::cout << "Transform Move Constructor" << std::endl;
 	}
 
 	Transform& operator=(const Transform& other) {
 		this->x = other.x;
 		this->y = other.y;
-		std::cout << "Transform Copy= Constructor" << std::endl;
+//		std::cout << "Transform Copy= Constructor" << std::endl;
 		return *this;
 	}
 
 	Transform& operator=(Transform&& other) noexcept {
 		this->x = other.x;
 		this->y = other.y;
-		std::cout << "Transform Move= Constructor" << std::endl;
+//		std::cout << "Transform Move= Constructor" << std::endl;
 		return *this;
 	}
 
 
 
 	~Transform() {
-		std::cout << "Transform Destructor" << std::endl;
+//		std::cout << "Transform Destructor" << std::endl;
 	}
 
 	float x;
@@ -78,29 +78,23 @@ struct Test {
 int main() {
 	using namespace Nameko;
 	EntityManager eManager;
-//	Transform t1(3, 3);
-//	Mesh m1(1);
+	Transform t1(3, 3);
+	Mesh m1(1);
+
+	/*
 	auto e1 = eManager.CreateEntity();
 	auto e2 = eManager.CreateEntity();
 	auto e3 = eManager.CreateEntity();
 
+	
 	ECS* ecs = new ECS;
 	ecs->AddComponents(e1, Transform(1, 1), Mesh(1));
 	ecs->AddComponents(e2, Transform(2, 2), Mesh(1));
 	ecs->AddComponents(e3, Transform(3, 3), Mesh(1));
 	delete ecs;
-
-	/*
+	*/
 	auto arche = make_arche(std::tuple(t1, m1));
 
-	arche->AddComponents(e, Transform(3, 3), Mesh(3));
-	std::cout << std::get<Transform&>(arche->GetComponents(e)).x << std::endl;
-	std::get<Transform&>(arche->GetComponents(e)).x = 5;
-	std::cout << std::get<Transform&>(arche->GetComponents(e)).x << std::endl;
-
-	delete arche;
-	*/
-	/*
 	std::chrono::system_clock::time_point start, end;
 
 	std::cout << "Initialize ECS" << std::endl;
@@ -108,6 +102,7 @@ int main() {
 
 
 	for (int i = 0; i < 4096; i++) {
+		auto e = eManager.CreateEntity();
 		arche->AddComponents(e, Transform(3, 3), Mesh(1));
 	}
 	end = std::chrono::system_clock::now();
@@ -153,6 +148,6 @@ int main() {
 
 	std::cout << "sum : " << sum << std::endl;
 
-	*/
+	delete arche;
 	return 0;
 }
