@@ -101,7 +101,7 @@ int main() {
 	start = std::chrono::system_clock::now();
 
 
-	for (int i = 0; i < 4096; i++) {
+	for (int i = 0; i < 8192; i++) {
 		auto e = eManager.CreateEntity();
 		arche->AddComponents(e, Transform(3, 3), Mesh(1));
 	}
@@ -112,9 +112,9 @@ int main() {
 	start = std::chrono::system_clock::now();
 	std::vector<Transform> tVec;
 	std::vector<Mesh> mVec;
-	tVec.reserve(4096);
-	mVec.reserve(4096);
-	for (int i = 0; i < 4096; i++) {
+	tVec.reserve(8192);
+	mVec.reserve(8192);
+	for (int i = 0; i < 8192; i++) {
 		tVec.emplace_back(t1);
 		mVec.emplace_back(m1);
 	}
@@ -125,7 +125,7 @@ int main() {
 
 	std::cout << "Iterate ECS" << std::endl;
 	start = std::chrono::system_clock::now();
-	for (int i = 0; i < 10240; i++) {
+	for (int i = 0; i < 10000; i++) {
 		arche->IterateAll<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
 			sum += (trans.x + mesh.y) * 0.5f;
 			});
@@ -138,9 +138,9 @@ int main() {
 
 	std::cout << "Iterate Vector" << std::endl;
 	start = std::chrono::system_clock::now();
-	for (int i = 0; i < 10240; i++) {
-		for (int j = 0; j < 4096; ++j) {
-			sum += (tVec[j].x + mVec[j].y) * 0.5;
+	for (int i = 0; i < 10000; i++) {
+		for (int j = 0; j < 8192; ++j) {
+			sum += (tVec[j].x + mVec[j].y) * 0.5f;
 		}
 	}
 	end = std::chrono::system_clock::now();
