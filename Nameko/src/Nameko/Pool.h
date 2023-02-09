@@ -4,7 +4,6 @@
 #include <cassert>
 #include <iostream>
 
-#include <typeinfo>
 namespace Nameko {
 	class PoolBase {
 	protected:

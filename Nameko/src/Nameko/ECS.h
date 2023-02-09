@@ -8,5 +8,8 @@
 
 namespace Nameko {
 	class ECS {
+	private:
+		std::unordered_map<ArcheID, std::unique_ptr<Archetype>> m_archetypes;
+
 	};
 }

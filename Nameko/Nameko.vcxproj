@@ -139,7 +139,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Nameko\Archtype.h" />
-    <ClInclude Include="src\Nameko\Chunk.h" />
+    <ClInclude Include="src\Nameko\Pool.h" />
     <ClInclude Include="src\Nameko\Config.h" />
     <ClInclude Include="src\Nameko\ECS.h" />
     <ClInclude Include="src\Nameko\Entity.h" />

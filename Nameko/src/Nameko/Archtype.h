@@ -4,14 +4,9 @@
 #include <array>
 #include <functional>
 
-#include "Nameko/Chunk.h"
+#include "Nameko/Pool.h"
 
 namespace Nameko {
-	class DeleterBase {
-	public:
-		virtual ~DeleterBase() = default;
-	};
-
 	class Archetype {
 		using Chunk = std::vector<std::unique_ptr<PoolBase>>;
 
