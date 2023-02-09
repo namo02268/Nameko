@@ -84,13 +84,9 @@ namespace Nameko {
 		template<typename... Components>
 		void IterateAll(const std::function<void(Components&...)> lambda) {
 			for (size_t chunk = 0; chunk < m_chunkSize + 1; ++chunk) {
-//				auto... ptrs = (m_chunks[chunk][m_familyToPool[IdGenerator::GetFamily<Components>()]].get(), ...);
-//				std::vector<PoolBase*> pools{ m_chunks[chunk][m_familyToPool[IdGenerator::GetFamily<Components>()]].get()... };
-				auto chunks = std::make_tuple(static_cast<Pool<Components>*>(m_chunks[chunk][m_familyToPool[IdGenerator::GetFamily<Components>()]].get())...);
 				auto currentSize = m_chunks[chunk][0]->size();
 				for (size_t size = 0; size < currentSize; ++size) {
-//					lambda(*static_cast<Components*>(ptrs->get(size))...);
-//					lambda(*static_cast<Components*>(m_chunks[chunk][m_familyToPool[IdGenerator::GetFamily<Components>()]]->get(size))...);
+					lambda(*static_cast<Components*>(m_chunks[chunk][m_familyToPool[IdGenerator::GetFamily<Components>()]]->get(size))...);
 				}
 			}
 		}
