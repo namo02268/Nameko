@@ -23,9 +23,10 @@ namespace Nameko {
 			std::cout << "Total Size : " << m_totalSize << "[bytes]" << std::endl;
 		}
 
-		PoolBase(const PoolBase&) = delete;
-		PoolBase& operator=(const PoolBase&) = delete;
+//		PoolBase(const PoolBase&) = delete;
+//		PoolBase& operator=(const PoolBase&) = delete;
 		virtual ~PoolBase() {
+			std::cout << "Free Pool : " << m_totalSize << "[bytes]" << std::endl;
 			delete[] m_ptr;
 		}
 

@@ -8,11 +8,11 @@
 
 namespace Nameko {
 	class Archetype {
-		using Chunk = std::vector<std::unique_ptr<PoolBase>>;
+		using Chunk = std::vector<PoolBase*>;
 
 	private:
 		std::vector<Chunk> m_chunks;
-		Chunk m_entities;
+		std::vector<std::unique_ptr<PoolBase>> m_entities;
 		std::vector<std::pair<FamilyID, size_t>> m_families;
 		std::array<uint32_t, MAX_COMPONENTS> m_familyToPool;
 		std::array<size_t, MAX_ENTITIES> m_entityToInstance;
@@ -22,7 +22,13 @@ namespace Nameko {
 
 	public:
 		Archetype() = default;
-		~Archetype() = default;
+		~Archetype() {
+			for (auto& chunk : m_chunks) {
+				for (auto pool : chunk) {
+					delete pool;
+				}
+			}
+		}
 
 		template<typename... Components>
 		void AddComponents(Entity e, Components&&... components) {
@@ -30,7 +36,7 @@ namespace Nameko {
 			if (m_chunks.size() <= m_chunkSize) {
 				std::cout << "Add Chunk" << std::endl;
 				Chunk chunk;
-				(chunk.emplace_back(std::make_unique<Pool<Components>>(sizeof(Components), CHUNK_SIZE)), ...);
+				(chunk.emplace_back(new Pool<Components>(sizeof(Components), CHUNK_SIZE)), ...);
 				(m_families.emplace_back(std::make_pair(IdGenerator::GetFamily<Components>(), sizeof(Components))), ...);
 				unsigned int count = 0;
 				((m_familyToPool[IdGenerator::GetFamily<Components>()] = count++), ...);
@@ -49,6 +55,21 @@ namespace Nameko {
 		Component* GetComponent(Entity e) {
 			auto size = m_entityToInstance[e];
 			return static_cast<Component*>(m_chunks[size / CHUNK_SIZE][m_familyToPool[IdGenerator::GetFamily<Component>()]]->get(size % CHUNK_SIZE));
+		}
+
+
+
+		template<typename... Components>
+		void Move(Archetype* other, Entity e) {
+			other->m_families = this->m_families;
+			for (auto& chunk : m_chunks) {
+				Chunk otherChunk;
+				for (auto pool : chunk) {
+					PoolBase otherPool = *pool;
+					otherChunk.emplace_back(otherPool);
+				}
+				other->m_chunks.emplace_back(otherChunk);
+			}
 		}
 
 		void RemoveComponents(Entity e) {

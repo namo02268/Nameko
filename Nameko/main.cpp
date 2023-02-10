@@ -65,11 +65,20 @@ struct Model {
 
 int main() {
 	using namespace Nameko;
+//	Transform t1(3, 3);
+//	Mesh m1(1);
 	EntityManager eManager;
-	Transform t1(3, 3);
-	Mesh m1(1);
-	auto e = eManager.CreateEntity();
 
+	auto ecs = new ECS;
+
+	auto e = eManager.CreateEntity();
+	ecs->AddComponents(e, Transform(1, 1), Mesh(1));
+	ecs->AddComponents(e, Vertex());
+
+	delete ecs;
+
+
+	/*
 	auto arche = new Archetype;
 
 	for (int i = 0; i < 8192; ++i) {
@@ -131,6 +140,7 @@ int main() {
 	std::cout << "sum : " << sum << std::endl;
 
 	delete arche;
+	*/
 
 	return 0;
 }
