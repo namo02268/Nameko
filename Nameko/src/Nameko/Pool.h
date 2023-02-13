@@ -5,61 +5,42 @@
 #include <iostream>
 
 namespace Nameko {
-	class PoolBase {
-	protected:
-		size_t m_size;
-
+	class BasePool {
 	private:
-		char* m_ptr;
-		size_t m_elementSize;
-		size_t m_maxElement;
-		size_t m_totalSize;
 
 	public:
-		PoolBase(size_t elementSize, size_t maxElement) : m_elementSize(elementSize), m_maxElement(maxElement) {
-			this->m_totalSize = m_elementSize * m_maxElement;
-			this->m_ptr = new char[m_totalSize];
-			this->m_size = 0;
-			std::cout << "Total Size : " << m_totalSize << "[bytes]" << std::endl;
-		}
-
-//		PoolBase(const PoolBase&) = delete;
-//		PoolBase& operator=(const PoolBase&) = delete;
-		virtual ~PoolBase() {
-			std::cout << "Free Pool : " << m_totalSize << "[bytes]" << std::endl;
-			delete[] m_ptr;
-		}
-
-		inline void setSize(const size_t size) { this->m_size = size; }
-
-		size_t size() const { return this->m_size; }
-		size_t elementSize() const { return this->m_elementSize; }
-		size_t maxElement() const { return this->m_maxElement; }
-		size_t totalSize() const { return this->m_totalSize; }
-
-		inline void* get(size_t n) {
-			return this->m_ptr + n * this->m_elementSize;
-		}
-
-		virtual void destroy(size_t n) = 0;
+		BasePool(size_t element_)
+		virtual ~BasePool() = default;
 	};
 
-	template<typename Component>
-	class Pool : public PoolBase {
+	template<typename T, size_t ChunkSize>
+	class Pool : public BasePool {
+	private:
+		std::vector<T*> m_blocks;
+		size_t m_size = 0;
+
 	public:
-		Pool(size_t elementSize, size_t maxElement) : PoolBase(elementSize, maxElement) {}
-		~Pool() {
-			for (size_t i = 0; i < m_size; ++i) {
-				this->destroy(i);
+		Pool() = default;
+		~Pool() = default;
+
+		size_t Size() const { return this->m_size; }
+
+		inline void Add(T&& t) {
+			auto currentSize = m_size % ChunkSize;
+			auto chunkSize = m_size / ChunkSize;
+
+			if (m_blocks.size() < chunkSize + 1) {
+				std::cout << "Add Chunk" << std::endl;
+				T* ptr = new T[ChunkSize];
+				m_blocks.push_back(ptr);
 			}
+
+//			this->m_blocks[chunkSize]->at(currentSize) = t;
+
+			m_size++;
 		}
 
-		inline Component& at(size_t n) {
-			static_cast<Component>(this->get(n));
-		}
-
-		void destroy(size_t n) override {
-			static_cast<Component*>(this->get(n))->~Component();
+		inline T& Get(size_t n) {
 		}
 	};
 }

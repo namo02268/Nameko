@@ -28,3 +28,12 @@ namespace Nameko {
 		return id++;
 	}
 }
+
+/*
+C++でテンプレートメタプログラミングを使って、
+AddType<Mesh, 0>;
+AddType<Transform, 1>;
+GetType<0>::type; // type: Mesh
+GetType<1>::type; // type: Transform
+のようにコンパイル時に型と数字のペアを追加して、後から数字を使って型を取り出すことができるようにしてください
+*/
