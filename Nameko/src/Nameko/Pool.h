@@ -16,47 +16,26 @@ namespace Nameko {
 		size_t m_size;
 
 	public:
-		BasePool(size_t elementSize, size_t chunkSize) {
-			this->m_elementSize = elementSize;
-			this->m_chunkSize = chunkSize;
-			this->m_totalBytes = elementSize * chunkSize;
-			this->m_size = 0;
-		}
+		BasePool(size_t elementSize, size_t chunkSize)
+			: m_elementSize(elementSize)
+			, m_chunkSize(chunkSize)
+			, m_totalBytes(elementSize * chunkSize)
+			, m_size(0)
+		{}
 
-		virtual ~BasePool() {
-			for (auto ptr : m_blocks) {
-				delete[] ptr;
-				std::cout << "Free : " << m_totalBytes << "[bytes]" << std::endl;
-			}
-		}
+		virtual ~BasePool() = default;
 
-		size_t size() const { return this->m_size; }
+		size_t size() const { return m_size; }
 
 		void* get(size_t n) {
 			assert(m_size > n && "n must be smaller than size.");
-			auto currentSize = n % m_chunkSize;
-			auto chunkSize = n / m_chunkSize;
-			return this->m_blocks[chunkSize] + m_elementSize * (currentSize);
+			const size_t chunkSize = n / m_chunkSize;
+			const size_t currentSize = n - chunkSize * m_chunkSize;
+			return m_blocks[chunkSize] + m_elementSize * (currentSize);
 		}
 
-		inline void add(void* ptr) {
-			auto currentSize = m_size % m_chunkSize;
-			auto chunkSize = m_size / m_chunkSize;
-
-			if (m_blocks.size() < chunkSize + 1) {
-				auto ptr = new char[this->m_totalBytes];
-				this->m_blocks.emplace_back(ptr);
-				std::cout << "Total Bytes : " << m_totalBytes << std::endl;
-			}
-
-			this->m_size++;
-			std::memcmp(this->get(this->m_size - 1), ptr, m_elementSize);
-		}
-
-		void replace(size_t n, void* ptr) {
-			std::memcpy(this->get(n), ptr, m_elementSize);
-		}
-
+		virtual void add(void* ptr) = 0;
+		virtual void replace(size_t n, void* ptr) = 0;
 		virtual void destroy(size_t n) = 0;
 		virtual BasePool* createPool() = 0;
 	};
@@ -64,34 +43,52 @@ namespace Nameko {
 	template<typename T, size_t ChunkSize>
 	class Pool : public BasePool {
 	public:
-		Pool() : BasePool(sizeof(T), ChunkSize) {}
+		Pool() 
+			: BasePool(sizeof(T), ChunkSize)
+		{}
+
 		~Pool() {
-			for (int i = 0; i < m_size; i++) {
+			for (size_t i = 0; i < m_size; i++) {
 				static_cast<T*>(this->get(i))->~T();
+			}
+
+			for (auto ptr : m_blocks) {
+				delete[] ptr;
+				std::cout << "Free : " << m_totalBytes << "[bytes]" << std::endl;
 			}
 		}
 
 		inline void add(T& t) {
-			auto currentSize = m_size % m_chunkSize;
-			auto chunkSize = m_size / m_chunkSize;
+			const size_t index = m_size++;
+			const size_t chunkSize = index / m_chunkSize;
 
-			if (m_blocks.size() < chunkSize + 1) {
-				auto ptr = new char[this->m_totalBytes];
-				this->m_blocks.emplace_back(ptr);
+			if(chunkSize >= m_blocks.size()) {
+				// ÉAÉâÉCÉÅÉìÉg
+				// auto ptr = static_cast<char*>(operator new(m_totalBytes, std::align_val_t(alignof(T))));
+				// m_blocks.emplace_back(ptr);
+				m_blocks.emplace_back(new char[m_totalBytes]);
 				std::cout << "Total Bytes : " << m_totalBytes << std::endl;
 			}
 
-			this->m_size++;
+			::new(this->get(index)) T(std::move(t));
+		}
 
-			auto ptr = static_cast<T*>(this->get(m_size - 1));
-			::new(ptr) T(std::forward<T>(t));
+		inline void add(void* ptr) override {
+			this->add(*static_cast<T*>(ptr));
+		}
+
+		void replace(size_t n, void* ptr) override {
+			*static_cast<T*>(this->get(n)) = std::move(*static_cast<T*>(ptr));
 		}
 
 		inline void destroy(size_t n) override {
+			const size_t last = m_size - 1;
 			static_cast<T*>(this->get(n))->~T();
-			this->replace(n, this->get(m_size - 1));
+			if (n != last) {
+				this->replace(n, this->get(last));
+			}
 
-			this->m_size--;
+			m_size--;
 		}
 
 		BasePool* createPool() override {
