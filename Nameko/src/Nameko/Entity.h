@@ -10,5 +10,8 @@ namespace Nameko {
 		~EntityManager() = default;
 
 		Entity CreateEntity() { return Entity(GetEntityID()); }
+		void DestroyEntity(Entity e) {
+			// TODO : Recycle ID
+		}
 	};
 }

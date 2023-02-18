@@ -30,6 +30,11 @@ namespace Nameko {
 			return m_entityManager->CreateEntity();
 		}
 
+		void DestoryEntity(Entity e) {
+			m_entityManager->DestroyEntity(e);
+			m_archetypes[m_entityToArche[e]]->RemoveComponents(e);
+		}
+
 		template<typename Component>
 		void AddComponent(Entity e, Component&& component) {
 			auto oldArcheID = m_entityToArche[e];
