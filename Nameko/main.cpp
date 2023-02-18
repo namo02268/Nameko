@@ -66,10 +66,16 @@ struct Model {
 int main() {
 	using namespace Nameko;
 
-	Pool<Transform, CHUNK_SIZE> pool;
-	for (int i = 0; i < 1030; i++) {
-		pool.Add(Transform(1, 1));
-	}
+	auto ecs = new ECS;
+	EntityManager eManager;
+
+	auto e = eManager.CreateEntity();
+	ecs->AddComponent<Transform>(e, Transform(1, 1));
+	ecs->AddComponent<Mesh>(e, Mesh(1));
+
+	std::cout << ecs->GetComponent<Transform>(e)->x << std::endl;
+
+	delete ecs;
 
 	return 0;
 }
