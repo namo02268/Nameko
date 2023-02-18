@@ -1,6 +1,7 @@
 #include "pch.h"
-#include "Nameko/Chunk.h"
+#include "Nameko/Pool.h"
 
+/*
 class BLOCK_TEST : public ::testing::Test {
 protected:
 	Nameko::Block<char, 256> block0_;
@@ -87,3 +88,4 @@ TEST_F(BLOCK_TEST, Pointer) {
 	EXPECT_EQ(block2_.get(0) + 2, block2_.get(2));
 	EXPECT_EQ(block2_.get(0) + 3, block2_.get(3));
 }
+*/

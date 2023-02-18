@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Nameko/Chunk.h"
+#include "Nameko/Pool.h"
 
 /*
 class CHUNK_TEST : public ::testing::Test {
@@ -26,16 +26,16 @@ protected:
 		chunk2_.AllocateBlock<Component1, 512>();
 		chunk2_.AllocateBlock<Component2, 512>();
 
-		chunk1_.AddComponent(Component1(1, 2));
-		chunk1_.AddComponent(Component1(3, 4));
-		chunk1_.AddComponent(Component1(5, 6));
+		chunk1_.AddType(Component1(1, 2));
+		chunk1_.AddType(Component1(3, 4));
+		chunk1_.AddType(Component1(5, 6));
 
-		chunk2_.AddComponent(Component1(1, 2));
-		chunk2_.AddComponent(Component2(1, 2, 3));
-		chunk2_.AddComponent(Component1(3, 4));
-		chunk2_.AddComponent(Component2(4, 5, 6));
-		chunk2_.AddComponent(Component1(5, 6));
-		chunk2_.AddComponent(Component2(7, 8, 9));
+		chunk2_.AddType(Component1(1, 2));
+		chunk2_.AddType(Component2(1, 2, 3));
+		chunk2_.AddType(Component1(3, 4));
+		chunk2_.AddType(Component2(4, 5, 6));
+		chunk2_.AddType(Component1(5, 6));
+		chunk2_.AddType(Component2(7, 8, 9));
 
 		chunk1_.RemoveComponent<Component1>(0);
 		chunk2_.RemoveComponent<Component1>(1);

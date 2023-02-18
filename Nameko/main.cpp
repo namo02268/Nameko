@@ -12,9 +12,8 @@
 #include <typeindex>
 
 struct Transform {
-public:
 	Transform(float x, float y) : x(x), y(y) {
-//		std::cout << "Transform Constructor" << std::endl;
+//		std::cout << "Transform Constructor : " << this->x << std::endl;
 	}
 
 	Transform(const Transform& other) {
@@ -46,7 +45,7 @@ public:
 
 
 	~Transform() {
-//		std::cout << "Transform Destructor" << std::endl;
+//		std::cout << "Transform Destructor : " << this->x << std::endl;
 	}
 
 	float x;
@@ -54,56 +53,78 @@ public:
 };
 
 struct Mesh {
-public:
 	Mesh(float y) : y(y) {}
-
 	float y;
 };
 
-template<typename Tuple, size_t... S>
-auto make_arche_impl(Tuple&& t, std::index_sequence<S...>) {
-	return new Nameko::Archetype<std::remove_reference_t<decltype(std::get<S>(t))>...>;
-}
+struct Collider {
+	Collider(float x) : x(x) {}
+	float x;
+};
 
-template<typename Tuple>
-auto make_arche(Tuple&& t) {
-	return make_arche_impl(std::forward<Tuple>(t), std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{});
-}
+struct Vertex {
+	float vertices[512];
+};
 
-template<typename T>
-struct Test {
-	using type = T;
+struct Model {
+	Transform transform{ 1, 1 };
+	Mesh mesh{ 1 };
+	Vertex vertex;
 };
 
 int main() {
 	using namespace Nameko;
-	EntityManager eManager;
-	Transform t1(3, 3);
-	Mesh m1(1);
-
-	/*
-	auto e1 = eManager.CreateEntity();
-	auto e2 = eManager.CreateEntity();
-	auto e3 = eManager.CreateEntity();
-
 	
-	ECS* ecs = new ECS;
-	ecs->AddComponents(e1, Transform(1, 1), Mesh(1));
-	ecs->AddComponents(e2, Transform(2, 2), Mesh(1));
-	ecs->AddComponents(e3, Transform(3, 3), Mesh(1));
+	auto ecs = new ECS;
+	auto e1 = ecs->CreateEntity();
+	auto e2 = ecs->CreateEntity();
+	auto e3 = ecs->CreateEntity();
+	auto e4 = ecs->CreateEntity();
+	auto e5 = ecs->CreateEntity();
+
+	ecs->AddComponent<Transform>(e1, Transform(1, 1));
+	ecs->AddComponent<Mesh>(e1, Mesh(1));
+
+	ecs->AddComponent<Transform>(e2, Transform(2, 2));
+	ecs->AddComponent<Mesh>(e2, Mesh(2));
+
+	ecs->AddComponent<Transform>(e3, Transform(3, 3));
+	ecs->AddComponent<Mesh>(e3, Mesh(3));
+
+	ecs->AddComponent<Transform>(e4, Transform(4, 4));
+	ecs->AddComponent<Mesh>(e4, Mesh(4));
+	ecs->RemoveComponent<Transform>(e4);
+	ecs->AddComponent<Collider>(e4, Collider(4));
+
+	ecs->AddComponent<Transform>(e5, Transform(5, 5));
+	ecs->AddComponent<Mesh>(e5, Mesh(5));
+	ecs->AddComponent<Collider>(e5, Collider(5));
+
+	float sum = 0.0f;
+	ecs->Each<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
+		sum += (trans.x + mesh.y) * 0.5;
+	});
+	std::cout << "sum : " << sum << std::endl;
+
 	delete ecs;
-	*/
-	auto arche = make_arche(std::tuple(t1, m1));
+}
+
+
+/*
+int main() {
+	using namespace Nameko;
+
+	auto ecs = new ECS;
+	EntityManager eManager;
 
 	std::chrono::system_clock::time_point start, end;
 
 	std::cout << "Initialize ECS" << std::endl;
 	start = std::chrono::system_clock::now();
-
-
-	for (int i = 0; i < 8192; i++) {
+	for (int i = 0; i < 9000; i++) {
 		auto e = eManager.CreateEntity();
-		arche->AddComponents(e, Transform(3, 3), Mesh(1));
+		ecs->AddComponent<Transform>(e, Transform(i, i));
+		ecs->AddComponent<Mesh>(e, Mesh(i));
 	}
 	end = std::chrono::system_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
@@ -112,42 +133,42 @@ int main() {
 	start = std::chrono::system_clock::now();
 	std::vector<Transform> tVec;
 	std::vector<Mesh> mVec;
-	tVec.reserve(8192);
-	mVec.reserve(8192);
-	for (int i = 0; i < 8192; i++) {
-		tVec.emplace_back(t1);
-		mVec.emplace_back(m1);
+	tVec.reserve(9000);
+	mVec.reserve(9000);
+	for (int i = 0; i < 9000; i++) {
+		tVec.emplace_back(Transform(i, i));
+		mVec.emplace_back(Mesh(i));
 	}
 	end = std::chrono::system_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 
-	float sum = 0.0f;
 
+	float sum = 0.0f;
 	std::cout << "Iterate ECS" << std::endl;
 	start = std::chrono::system_clock::now();
 	for (int i = 0; i < 10000; i++) {
-		arche->IterateAll<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
-			sum += (trans.x + mesh.y) * 0.5f;
-			});
+		ecs->Each<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
+			sum += (trans.x + mesh.y) * 0.00005f;
+		});
 	}
 	end = std::chrono::system_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
 	std::cout << "sum : " << sum << std::endl;
 
 	sum = 0.0f;
-
 	std::cout << "Iterate Vector" << std::endl;
 	start = std::chrono::system_clock::now();
 	for (int i = 0; i < 10000; i++) {
-		for (int j = 0; j < 8192; ++j) {
-			sum += (tVec[j].x + mVec[j].y) * 0.5f;
+		for (int j = 0; j < 9000; j++) {
+			sum += (tVec[j].x + mVec[j].y) * 0.00005f;
 		}
 	}
 	end = std::chrono::system_clock::now();
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
-
 	std::cout << "sum : " << sum << std::endl;
 
-	delete arche;
+	delete ecs;
+
 	return 0;
 }
+*/
