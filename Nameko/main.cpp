@@ -3,13 +3,7 @@
 #include "Nameko/Archtype.h"
 #include "Nameko/ECS.h"
 
-#include <bitset>
-
 #include<chrono>
-
-#include <map>
-#include <typeinfo>
-#include <typeindex>
 
 struct Transform {
 	Transform(float x, float y) : x(x), y(y) {
@@ -72,45 +66,7 @@ struct Model {
 	Vertex vertex;
 };
 
-int main() {
-	using namespace Nameko;
-	
-	auto ecs = new ECS;
-	auto e1 = ecs->CreateEntity();
-	auto e2 = ecs->CreateEntity();
-	auto e3 = ecs->CreateEntity();
-	auto e4 = ecs->CreateEntity();
-	auto e5 = ecs->CreateEntity();
 
-	ecs->AddComponent<Transform>(e1, Transform(1, 1));
-	ecs->AddComponent<Mesh>(e1, Mesh(1));
-
-	ecs->AddComponent<Transform>(e2, Transform(2, 2));
-	ecs->AddComponent<Mesh>(e2, Mesh(2));
-
-	ecs->AddComponent<Transform>(e3, Transform(3, 3));
-	ecs->AddComponent<Mesh>(e3, Mesh(3));
-
-	ecs->AddComponent<Transform>(e4, Transform(4, 4));
-	ecs->AddComponent<Mesh>(e4, Mesh(4));
-	ecs->RemoveComponent<Transform>(e4);
-	ecs->AddComponent<Collider>(e4, Collider(4));
-
-	ecs->AddComponent<Transform>(e5, Transform(5, 5));
-	ecs->AddComponent<Mesh>(e5, Mesh(5));
-	ecs->AddComponent<Collider>(e5, Collider(5));
-
-	float sum = 0.0f;
-	ecs->Each<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
-		sum += (trans.x + mesh.y) * 0.5;
-	});
-	std::cout << "sum : " << sum << std::endl;
-
-	delete ecs;
-}
-
-
-/*
 int main() {
 	using namespace Nameko;
 
@@ -171,4 +127,3 @@ int main() {
 
 	return 0;
 }
-*/
