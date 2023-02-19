@@ -6,6 +6,7 @@
 #include "Nameko/Entity.h"
 #include "Nameko/Archtype.h" 
 #include "Nameko/IdGenerator.h"
+#include "Nameko/System.h"
 
 namespace Nameko {
 	class ECS {
@@ -13,6 +14,7 @@ namespace Nameko {
 		EntityManager* m_entityManager;
 		std::unordered_map<ArcheID, Archetype*>  m_archetypes;
 		std::array<ArcheID, MAX_ENTITIES> m_entityToArche;
+		std::vector<std::unique_ptr<System>> m_systems;
 
 	public:
 		ECS() {
@@ -23,6 +25,29 @@ namespace Nameko {
 			delete m_entityManager;
 			for (auto& pair : m_archetypes) {
 				delete pair.second;
+			}
+		}
+
+		void AddSystem(std::unique_ptr<System> system) {
+			system->SetECS(this);
+			m_systems.emplace_back(std::move(system));
+		}
+
+		void Init() {
+			for (auto& system : m_systems) {
+				system->Init();
+			}
+		}
+
+		void Update(float dt) {
+			for (auto& system : m_systems) {
+				system->Update(dt);
+			}
+		}
+
+		void Draw() {
+			for (auto& system : m_systems) {
+				system->Draw();
 			}
 		}
 

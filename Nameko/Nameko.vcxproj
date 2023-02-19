@@ -144,6 +144,7 @@
     <ClInclude Include="src\Nameko\ECS.h" />
     <ClInclude Include="src\Nameko\Entity.h" />
     <ClInclude Include="src\Nameko\IdGenerator.h" />
+    <ClInclude Include="src\Nameko\System.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

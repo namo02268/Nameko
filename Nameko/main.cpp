@@ -66,10 +66,32 @@ struct Model {
 	Vertex vertex;
 };
 
+class Updator : public Nameko::System {
+public:
+	Updator() { std::cout << "Updator Constructor" << std::endl; }
+	~Updator() { std::cout << "Updator Destructor" << std::endl; }
+
+	void Init() override {
+		std::cout << "Init Updator" << std::endl;
+	}
+
+	void Update(float dt) override {
+		std::cout << "Update Updator" << std::endl;
+		m_ecs->Each<Transform>([](Transform& trans) {
+			trans.x += 10;
+		});
+	}
+
+	void Draw() override {
+		std::cout << "Draw Updator" << std::endl;
+	}
+};
+
 int main() {
 	using namespace Nameko;
 
 	auto ecs = new ECS;
+	ecs->AddSystem(std::make_unique<Updator>());
 
 	auto e1 = ecs->CreateEntity();
 	ecs->AddComponent<Transform>(e1, Transform(1, 1));
@@ -92,14 +114,16 @@ int main() {
 	ecs->AddComponent<Mesh>(e5, Mesh(5));
 
 	ecs->DestoryEntity(e1);
-	ecs->DestoryEntity(e3);
 
-	float sum = 0.0f;
-	ecs->Each<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
-		sum += (trans.x + mesh.y) * 0.5f;
-	});
+	ecs->Init();
+	ecs->Update(1.0f);
+	ecs->Draw();
 
-	std::cout << "sum : " << sum << std::endl;
+	std::cout << ecs->GetComponent<Transform>(e2)->x << std::endl;
+	std::cout << ecs->GetComponent<Transform>(e3)->x << std::endl;
+	std::cout << ecs->GetComponent<Transform>(e4)->x << std::endl;
+	std::cout << ecs->GetComponent<Transform>(e5)->x << std::endl;
+
 
 
 	delete ecs;
