@@ -94,21 +94,39 @@ namespace Nameko {
 		}
 
 		template<typename... Components>
-		void Each(const std::function<void(Components&...)>&& lambda) {
+		void EachComponent(const std::function<void(Components&...)>&& lambda) {
 			const size_t chunkSize = m_size / CHUNK_SIZE;
-
 			for (size_t i = 0; i < chunkSize; ++i) {
-				this->Iterate(lambda, CHUNK_SIZE, static_cast<Components*>(m_componentPools[m_familyToPool[IdGenerator::GetFamily<Components>()]]->get(CHUNK_SIZE * i))...);
+				this->IterateComponent(lambda, CHUNK_SIZE, static_cast<Components*>(m_componentPools[m_familyToPool[IdGenerator::GetFamily<Components>()]]->get(CHUNK_SIZE * i))...);
 			}
+	
 			const size_t currentSize = m_size - chunkSize * CHUNK_SIZE;
 			if (currentSize != 0) {
-				this->Iterate(lambda, currentSize, static_cast<Components*>(m_componentPools[m_familyToPool[IdGenerator::GetFamily<Components>()]]->get(CHUNK_SIZE * chunkSize))...);
+				this->IterateComponent(lambda, currentSize, static_cast<Components*>(m_componentPools[m_familyToPool[IdGenerator::GetFamily<Components>()]]->get(CHUNK_SIZE * chunkSize))...);
+			}
+		}
+
+		void EachEntity(const std::function<void(Entity&)>& lambda) {
+			const size_t chunkSize = m_size / CHUNK_SIZE;
+			for (size_t i = 0; i < chunkSize; ++i) {
+				auto ptr = static_cast<Entity*>(m_entityPool->get(CHUNK_SIZE * i));
+				for (size_t j = 0; j < CHUNK_SIZE; ++j) {
+					lambda(ptr[j]);
+				}
+			}
+
+			const size_t currentSize = m_size - chunkSize * CHUNK_SIZE;
+			if (currentSize != 0) {
+				auto ptr = static_cast<Entity*>(m_entityPool->get(CHUNK_SIZE * chunkSize));
+				for (size_t j = 0; j < currentSize; ++j) {
+					lambda(ptr[j]);
+				}
 			}
 		}
 
 	private:
 		template<typename... Components, typename... ComponentArray>
-		inline void Iterate(const std::function<void(Components&...)>& lambda, const size_t size, ComponentArray*... array) {
+		inline void IterateComponent(const std::function<void(Components&...)>& lambda, const size_t size, ComponentArray*... array) {
 			for (size_t i = 0; i < size; ++i) {
 				lambda(array[i]...);
 			}

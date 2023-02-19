@@ -117,11 +117,21 @@ namespace Nameko {
 		}
 
 		template<typename... Components>
-		void Each(const std::function<void(Components&...)>&& lambda) {
+		void EachComponent(const std::function<void(Components&...)>&& lambda) {
 			auto mask = IdGenerator::GetArche<Components...>();
 			for (const auto& [archeID, archetype] : this->m_archetypes) {
 				if ((archeID & mask) == mask) {
-					archetype->Each<Components...>(std::forward<const std::function<void(Components&...)>>(lambda));
+					archetype->EachComponent<Components...>(std::forward<const std::function<void(Components&...)>>(lambda));
+				}
+			}
+		}
+
+		template<typename... Components>
+		void EachEntity(const std::function<void(Entity&)>&& lambda) {
+			auto mask = IdGenerator::GetArche<Components...>();
+			for (const auto& [archeID, archetype] : this->m_archetypes) {
+				if ((archeID & mask) == mask) {
+					archetype->EachEntity(lambda);
 				}
 			}
 		}

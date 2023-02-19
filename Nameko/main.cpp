@@ -77,7 +77,7 @@ public:
 
 	void Update(float dt) override {
 		std::cout << "Update Updator" << std::endl;
-		m_ecs->Each<Transform>([](Transform& trans) {
+		m_ecs->EachComponent<Transform>([](Transform& trans) {
 			trans.x += 10;
 		});
 	}
@@ -86,6 +86,7 @@ public:
 		std::cout << "Draw Updator" << std::endl;
 	}
 };
+
 
 int main() {
 	using namespace Nameko;
@@ -115,14 +116,9 @@ int main() {
 
 	ecs->DestoryEntity(e1);
 
-	ecs->Init();
-	ecs->Update(1.0f);
-	ecs->Draw();
-
-	std::cout << ecs->GetComponent<Transform>(e2)->x << std::endl;
-	std::cout << ecs->GetComponent<Transform>(e3)->x << std::endl;
-	std::cout << ecs->GetComponent<Transform>(e4)->x << std::endl;
-	std::cout << ecs->GetComponent<Transform>(e5)->x << std::endl;
+	ecs->EachEntity<Transform, Mesh>([](Entity& entity){
+		std::cout << entity << std::endl;
+	});
 
 
 
@@ -166,10 +162,10 @@ int main() {
 
 
 	float sum = 0.0f;
-	std::cout << "Iterate ECS" << std::endl;
+	std::cout << "IterateComponent ECS" << std::endl;
 	start = std::chrono::system_clock::now();
 	for (int i = 0; i < 10000; i++) {
-		ecs->Each<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
+		ecs->EachComponent<Transform, Mesh>([&sum](Transform& trans, Mesh& mesh) {
 			sum += (trans.x + mesh.y) * 0.00005f;
 		});
 	}
@@ -178,7 +174,7 @@ int main() {
 	std::cout << "sum : " << sum << std::endl;
 
 	sum = 0.0f;
-	std::cout << "Iterate Vector" << std::endl;
+	std::cout << "IterateComponent Vector" << std::endl;
 	start = std::chrono::system_clock::now();
 	for (int i = 0; i < 10000; i++) {
 		for (int j = 0; j < 9000; j++) {
