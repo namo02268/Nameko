@@ -87,7 +87,7 @@ public:
 	}
 };
 
-
+/*
 int main() {
 	using namespace Nameko;
 
@@ -120,15 +120,12 @@ int main() {
 		std::cout << entity << std::endl;
 	});
 
-
-
 	delete ecs;
 
 	return 0;
 }
+*/
 
-
-/*
 int main() {
 	using namespace Nameko;
 
@@ -189,4 +186,3 @@ int main() {
 
 	return 0;
 }
-*/

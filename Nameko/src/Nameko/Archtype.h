@@ -22,7 +22,7 @@ namespace Nameko {
 			m_entityPool = new Pool<Entity, CHUNK_SIZE>;
 		}
 
-		~Archetype() {
+		virtual ~Archetype() {
 			std::cout << "Delete Pools" << std::endl;
 			for (auto pool : m_componentPools) {
 				delete pool;
