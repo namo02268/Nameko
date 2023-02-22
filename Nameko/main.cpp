@@ -87,11 +87,21 @@ public:
 	}
 };
 
-/*
+class MyECS : public Nameko::ECS {
+public:
+	MyECS() = default;
+	~MyECS() = default;
+
+	Nameko::Entity CreateEntity() override {
+		std::cout << "Create Entity" << std::endl;
+		return m_entityManager->CreateEntity();
+	}
+};
+
 int main() {
 	using namespace Nameko;
 
-	auto ecs = new ECS;
+	auto ecs = new MyECS;
 	ecs->AddSystem(std::make_unique<Updator>());
 
 	auto e1 = ecs->CreateEntity();
@@ -124,8 +134,9 @@ int main() {
 
 	return 0;
 }
-*/
 
+
+/*
 int main() {
 	using namespace Nameko;
 
@@ -186,3 +197,4 @@ int main() {
 
 	return 0;
 }
+*/
