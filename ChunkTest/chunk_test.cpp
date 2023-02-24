@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "Nameko/Pool.h"
 
 /*
 class CHUNK_TEST : public ::testing::Test {
