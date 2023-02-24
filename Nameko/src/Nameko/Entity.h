@@ -4,6 +4,7 @@
 
 namespace Nameko {
 	using Entity = EntityID;
+	constexpr Entity ENTITY_NULL = 0;
 
 	class EntityManager {
 	public:

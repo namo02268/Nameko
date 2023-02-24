@@ -10,34 +10,6 @@ struct Transform {
 //		std::cout << "Transform Constructor : " << this->x << std::endl;
 	}
 
-	Transform(const Transform& other) {
-		this->x = other.x;
-		this->y = other.y;
-//		std::cout << "Transform Copy Constructor" << std::endl;
-	}
-
-	Transform(Transform&& other) noexcept {
-		this->x = other.x;
-		this->y = other.y;
-//		std::cout << "Transform Move Constructor" << std::endl;
-	}
-
-	Transform& operator=(const Transform& other) {
-		this->x = other.x;
-		this->y = other.y;
-//		std::cout << "Transform Copy= Constructor" << std::endl;
-		return *this;
-	}
-
-	Transform& operator=(Transform&& other) noexcept {
-		this->x = other.x;
-		this->y = other.y;
-//		std::cout << "Transform Move= Constructor" << std::endl;
-		return *this;
-	}
-
-
-
 	~Transform() {
 //		std::cout << "Transform Destructor : " << this->x << std::endl;
 	}

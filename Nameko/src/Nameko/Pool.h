@@ -45,7 +45,9 @@ namespace Nameko {
 	public:
 		Pool() 
 			: BasePool(sizeof(T), ChunkSize)
-		{}
+		{
+			static_assert(std::is_standard_layout<T>::value == true, "template parameter T must be trivial");
+		}
 
 		~Pool() {
 			for (size_t i = 0; i < m_size; i++) {
