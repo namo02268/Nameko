@@ -116,11 +116,17 @@ int main() {
 
 	ecs->DestoryEntity(e1);
 
+	auto e6 = ecs->DeplicateEntity(e2);
+
 	ecs->EachEntity<Transform, Mesh>([](Entity& entity){
 		std::cout << entity << std::endl;
 	});
 
-
+	float sum = 0.0f;
+	ecs->EachComponent<Transform, Mesh>([&](Transform& transform, Mesh& mesh) {
+		sum += (transform.x + mesh.y) * 0.5f;
+	});
+	std::cout << "sum : " << sum << std::endl;
 
 	delete ecs;
 

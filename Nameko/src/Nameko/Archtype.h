@@ -31,7 +31,7 @@ namespace Nameko {
 		}
 
 		template<typename Component>
-		void AddComponent(Entity e, Component&& component, Archetype* other) {
+		void AddComponent(Entity entity, Component&& component, Archetype* other) {
 			if (other != nullptr) {
 				for (const auto& [familyID, poolID] : other->m_familyToPool) {
 					if (!this->m_familyToPool.contains(familyID)) {
@@ -39,9 +39,9 @@ namespace Nameko {
 						this->m_componentPools.emplace_back(other->m_componentPools[poolID]->createPool());
 						this->m_familyToPool[familyID] = this->m_componentPools.size() - 1;
 					}
-					this->m_componentPools[this->m_familyToPool[familyID]]->add(other->m_componentPools[poolID]->get(other->m_entityToInstance[e]));
+					this->m_componentPools[this->m_familyToPool[familyID]]->add(other->m_componentPools[poolID]->get(other->m_entityToInstance[entity]));
 				}
-				other->RemoveComponents(e);
+				other->RemoveComponents(entity);
 			}
 
 			auto family = IdGenerator::GetFamily<Component>();
@@ -52,20 +52,31 @@ namespace Nameko {
 			}
 			static_cast<Pool<Component, CHUNK_SIZE>*>(this->m_componentPools[this->m_familyToPool[family]])->add(component);
 
-			this->m_entityPool->add(e);
-			this->m_entityToInstance[e] = this->m_size;
+			this->m_entityPool->add(entity);
+			this->m_entityToInstance[entity] = this->m_size;
+			this->m_size++;
+		}
+
+
+		void DeplicateEntity(Entity src, Entity dst) {
+			for (auto& pool : m_componentPools) {
+				pool->add(pool->get(this->m_entityToInstance[src]));
+			}
+
+			this->m_entityPool->add(dst);
+			this->m_entityToInstance[dst] = this->m_size;
 			this->m_size++;
 		}
 
 		template<typename Component>
-		Component* GetComponent(Entity e) {
+		Component* GetComponent(Entity entity) {
 			auto family = IdGenerator::GetFamily<Component>();
-			auto n = m_entityToInstance[e];
+			auto n = m_entityToInstance[entity];
 			return static_cast<Component*>(m_componentPools[m_familyToPool[family]]->get(n));
 		}
 
 		template<typename Component>
-		void RemoveComponent(Entity e, Archetype* other) {
+		void RemoveComponent(Entity entity, Archetype* other) {
 			auto removeID = IdGenerator::GetFamily<Component>();
 			for (const auto& [familyID, poolID] : this->m_familyToPool) {
 				if (familyID != removeID) {
@@ -74,22 +85,22 @@ namespace Nameko {
 						other->m_componentPools.emplace_back(this->m_componentPools[poolID]->createPool());
 						other->m_familyToPool[familyID] = other->m_componentPools.size() - 1;
 					}
-					other->m_componentPools[other->m_familyToPool[familyID]]->add(this->m_componentPools[poolID]->get(this->m_entityToInstance[e]));
+					other->m_componentPools[other->m_familyToPool[familyID]]->add(this->m_componentPools[poolID]->get(this->m_entityToInstance[entity]));
 				}
 			}
-			other->m_entityPool->add(e);
-			other->m_entityToInstance[e] = other->m_size;
+			other->m_entityPool->add(entity);
+			other->m_entityToInstance[entity] = other->m_size;
 			other->m_size++;
 
-			this->RemoveComponents(e);
+			this->RemoveComponents(entity);
 		}
 
-		void RemoveComponents(Entity e) {
+		void RemoveComponents(Entity entity) {
 			for (auto& pool : m_componentPools) {
-				pool->destroy(m_entityToInstance[e]);
+				pool->destroy(m_entityToInstance[entity]);
 			}
-			m_entityToInstance[*static_cast<Entity*>(m_entityPool->get(m_size - 1))] = m_entityToInstance[e];
-			m_entityPool->destroy(m_entityToInstance[e]);
+			m_entityToInstance[*static_cast<Entity*>(m_entityPool->get(m_size - 1))] = m_entityToInstance[entity];
+			m_entityPool->destroy(m_entityToInstance[entity]);
 			m_size--;
 		}
 
