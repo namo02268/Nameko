@@ -10,7 +10,7 @@
 
 namespace Nameko {
 	class ECS {
-	private:
+	protected:
 		EntityManager* m_entityManager;
 		std::unordered_map<ArcheID, Archetype*>  m_archetypes;
 		std::array<ArcheID, MAX_ENTITIES> m_entityToArche;
@@ -21,7 +21,7 @@ namespace Nameko {
 			m_entityManager = new EntityManager;
 		}
 
-		~ECS() {
+		virtual ~ECS() {
 			delete m_entityManager;
 			for (auto& pair : m_archetypes) {
 				delete pair.second;
@@ -51,7 +51,7 @@ namespace Nameko {
 			}
 		}
 
-		Entity CreateEntity() {
+		virtual Entity CreateEntity() {
 			return m_entityManager->CreateEntity();
 		}
 

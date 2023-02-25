@@ -7,7 +7,7 @@
 namespace Nameko {
 	class BasePool {
 	protected:
-		std::vector<char*> m_blocks;
+		std::vector<std::byte*> m_blocks;
 
 		size_t m_elementSize;
 		size_t m_chunkSize;
@@ -45,7 +45,9 @@ namespace Nameko {
 	public:
 		Pool() 
 			: BasePool(sizeof(T), ChunkSize)
-		{}
+		{
+			static_assert(std::is_standard_layout<T>::value == true, "template parameter T must be trivial");
+		}
 
 		~Pool() {
 			for (size_t i = 0; i < m_size; i++) {
@@ -64,9 +66,9 @@ namespace Nameko {
 
 			if(chunkSize >= m_blocks.size()) {
 				// ÉAÉâÉCÉÅÉìÉg
-				// auto ptr = static_cast<char*>(operator new(m_totalBytes, std::align_val_t(alignof(T))));
+				// auto ptr = static_cast<std::byte*>(operator new(m_totalBytes, std::align_val_t(alignof(T))));
 				// m_blocks.emplace_back(ptr);
-				m_blocks.emplace_back(new char[m_totalBytes]);
+				m_blocks.emplace_back(new std::byte[m_totalBytes]);
 				std::cout << "Total Bytes : " << m_totalBytes << std::endl;
 			}
 

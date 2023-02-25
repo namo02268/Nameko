@@ -10,34 +10,6 @@ struct Transform {
 //		std::cout << "Transform Constructor : " << this->x << std::endl;
 	}
 
-	Transform(const Transform& other) {
-		this->x = other.x;
-		this->y = other.y;
-//		std::cout << "Transform Copy Constructor" << std::endl;
-	}
-
-	Transform(Transform&& other) noexcept {
-		this->x = other.x;
-		this->y = other.y;
-//		std::cout << "Transform Move Constructor" << std::endl;
-	}
-
-	Transform& operator=(const Transform& other) {
-		this->x = other.x;
-		this->y = other.y;
-//		std::cout << "Transform Copy= Constructor" << std::endl;
-		return *this;
-	}
-
-	Transform& operator=(Transform&& other) noexcept {
-		this->x = other.x;
-		this->y = other.y;
-//		std::cout << "Transform Move= Constructor" << std::endl;
-		return *this;
-	}
-
-
-
 	~Transform() {
 //		std::cout << "Transform Destructor : " << this->x << std::endl;
 	}
@@ -87,11 +59,21 @@ public:
 	}
 };
 
+class MyECS : public Nameko::ECS {
+public:
+	MyECS() = default;
+	~MyECS() = default;
+
+	Nameko::Entity CreateEntity() override {
+		std::cout << "Create Entity" << std::endl;
+		return m_entityManager->CreateEntity();
+	}
+};
 
 int main() {
 	using namespace Nameko;
 
-	auto ecs = new ECS;
+	auto ecs = new MyECS;
 	ecs->AddSystem(std::make_unique<Updator>());
 
 	auto e1 = ecs->CreateEntity();
