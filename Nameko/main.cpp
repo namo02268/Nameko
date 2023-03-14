@@ -18,6 +18,24 @@ struct Transform {
 	float y;
 };
 
+struct Position
+{
+	Position(float x, float y) : x(x), y(y) {}
+	float x, y;
+};
+
+struct Velocity
+{
+	Velocity(float dx, float dy) : dx(dx), dy(dy) {}
+	float dx, dy;
+};
+
+struct Acceleration
+{
+	Acceleration(float ddx, float ddy) : ddx(ddx), ddy(ddy) {}
+	float ddx, ddy;
+};
+
 struct Mesh {
 	Mesh(float y) : y(y) {}
 	float y;
@@ -73,42 +91,21 @@ public:
 int main() {
 	using namespace Nameko;
 
-	auto ecs = new MyECS;
-	ecs->AddSystem(std::make_unique<Updator>());
+	auto ecs = new ECS;
 
-	auto e1 = ecs->CreateEntity();
-	ecs->AddComponent<Transform>(e1, Transform(1, 1));
-	ecs->AddComponent<Mesh>(e1, Mesh(1));
+	auto entity = ecs->CreateEntity();
+	ecs->AddComponent<Position>(entity, Position(1, 1));
+	ecs->AddComponent<Velocity>(entity, Velocity(3, 3));
 
-	auto e2 = ecs->CreateEntity();
-	ecs->AddComponent<Transform>(e2, Transform(2, 2));
-	ecs->AddComponent<Mesh>(e2, Mesh(2));
-
-	auto e3 = ecs->CreateEntity();
-	ecs->AddComponent<Transform>(e3, Transform(3, 3));
-	ecs->AddComponent<Mesh>(e3, Mesh(3));
-
-	auto e4 = ecs->CreateEntity();
-	ecs->AddComponent<Transform>(e4, Transform(4, 4));
-	ecs->AddComponent<Mesh>(e4, Mesh(4));
-
-	auto e5 = ecs->CreateEntity();
-	ecs->AddComponent<Transform>(e5, Transform(5, 5));
-	ecs->AddComponent<Mesh>(e5, Mesh(5));
-
-	ecs->DestoryEntity(e1);
-
-	auto e6 = ecs->DeplicateEntity(e2);
-
-	ecs->EachEntity<Transform, Mesh>([](Entity& entity){
-		std::cout << entity << std::endl;
+	float dt = 1.0f;
+	ecs->EachComponent<Position, Velocity>([&](Position& position, Velocity& velocity) {
+		position.x = velocity.dx * dt;
+		position.y = velocity.dy * dt;
 	});
 
-	float sum = 0.0f;
-	ecs->EachComponent<Transform, Mesh>([&](Transform& transform, Mesh& mesh) {
-		sum += (transform.x + mesh.y) * 0.5f;
+	ecs->EachEntity<Position, Velocity>([&](Entity& entity){
+		ecs->AddComponent<Acceleration>(entity, Acceleration(5, 5));
 	});
-	std::cout << "sum : " << sum << std::endl;
 
 	delete ecs;
 

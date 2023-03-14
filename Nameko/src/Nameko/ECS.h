@@ -62,31 +62,24 @@ namespace Nameko {
 
 		template<typename Component>
 		void AddComponent(Entity e, Component&& component) {
+			assert(!this->HasComponent<Component>(e) && "Entity already has the Component.");
+
 			auto oldArcheID = m_entityToArche[e];
 			auto newArcheID = oldArcheID | IdGenerator::GetArche<Component>();
 
-			if (this->HasComponent<Component>(e)) {
-				std::cout << "Entity already has the Component." << std::endl;
+			if (!m_archetypes.contains(newArcheID)) {
+				m_archetypes[newArcheID] = new Archetype;
 			}
-			else {
-				if (!m_archetypes.contains(newArcheID)) {
-					m_archetypes[newArcheID] = new Archetype;
-				}
-				m_archetypes[newArcheID]->AddComponent<Component>(e, std::forward<Component>(component), m_archetypes[oldArcheID]);
-				m_entityToArche[e] = newArcheID;
-			}
+			m_archetypes[newArcheID]->AddComponent<Component>(e, std::forward<Component>(component), m_archetypes[oldArcheID]);
+			m_entityToArche[e] = newArcheID;
 		}
 
 		template<typename Component>
 		Component* GetComponent(Entity e) {
-			if (this->HasComponent<Component>(e)) {
-				auto archeID = m_entityToArche[e];
-				return m_archetypes[archeID]->GetComponent<Component>(e);
-			}
-			else {
-				std::cout << "Entity doesn't have the Component." << std::endl;
-				return nullptr;
-			}
+			assert(this->HasComponent<Component>(e) && "Entity doesn't have the Component.");
+
+			auto archeID = m_entityToArche[e];
+			return m_archetypes[archeID]->GetComponent<Component>(e);
 		}
 
 		template<typename Component>
@@ -96,24 +89,21 @@ namespace Nameko {
 
 		template<typename Component>
 		void RemoveComponent(Entity e) {
-			if (this->HasComponent<Component>(e)) {
-				auto oldArcheID = m_entityToArche[e];
-				auto newArcheID = oldArcheID & ~IdGenerator::GetArche<Component>();
+			assert(this->HasComponent<Component>(e) && "Entity doesn't have the Component.");
 
-				if (newArcheID != 0) {
-					if (!m_archetypes.contains(newArcheID)) {
-						m_archetypes[newArcheID] = new Archetype;
-					}
-					m_archetypes[oldArcheID]->RemoveComponent<Component>(e, m_archetypes[newArcheID]);
+			auto oldArcheID = m_entityToArche[e];
+			auto newArcheID = oldArcheID & ~IdGenerator::GetArche<Component>();
+
+			if (newArcheID != 0) {
+				if (!m_archetypes.contains(newArcheID)) {
+					m_archetypes[newArcheID] = new Archetype;
 				}
-				else {
-					m_archetypes[oldArcheID]->RemoveComponents(e);
-				}
-				m_entityToArche[e] = newArcheID;
+				m_archetypes[oldArcheID]->RemoveComponent<Component>(e, m_archetypes[newArcheID]);
 			}
 			else {
-				std::cout << "Entity doesn't have the Component." << std::endl;
+				m_archetypes[oldArcheID]->RemoveComponents(e);
 			}
+			m_entityToArche[e] = newArcheID;
 		}
 
 		template<typename... Components>
