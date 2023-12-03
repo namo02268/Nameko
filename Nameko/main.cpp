@@ -88,6 +88,7 @@ public:
 	}
 };
 
+/*
 int main() {
 	using namespace Nameko;
 
@@ -111,9 +112,8 @@ int main() {
 
 	return 0;
 }
+*/
 
-
-/*
 int main() {
 	using namespace Nameko;
 
@@ -174,4 +174,3 @@ int main() {
 
 	return 0;
 }
-*/

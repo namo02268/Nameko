@@ -7,7 +7,7 @@
 namespace Nameko {
 	class BasePool {
 	protected:
-		std::vector<std::byte*> m_blocks;
+		std::vector<uint8_t*> m_blocks;
 
 		size_t m_elementSize;
 		size_t m_chunkSize;
@@ -42,6 +42,9 @@ namespace Nameko {
 
 	template<typename T, size_t ChunkSize>
 	class Pool : public BasePool {
+	private:
+//		std::tuple<>
+
 	public:
 		Pool() 
 			: BasePool(sizeof(T), ChunkSize)
@@ -55,7 +58,7 @@ namespace Nameko {
 			}
 
 			for (auto ptr : m_blocks) {
-				delete[] ptr;
+				free(ptr);
 				std::cout << "Free : " << m_totalBytes << "[bytes]" << std::endl;
 			}
 		}
@@ -68,7 +71,7 @@ namespace Nameko {
 				// ƒAƒ‰ƒCƒƒ“ƒg
 				// auto ptr = static_cast<std::byte*>(operator new(m_totalBytes, std::align_val_t(alignof(T))));
 				// m_blocks.emplace_back(ptr);
-				m_blocks.emplace_back(new std::byte[m_totalBytes]);
+				m_blocks.emplace_back(static_cast<uint8_t*>(malloc(m_totalBytes)));
 				std::cout << "Total Bytes : " << m_totalBytes << std::endl;
 			}
 
