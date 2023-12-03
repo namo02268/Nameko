@@ -3,98 +3,142 @@
 #include <memory>
 #include <cassert>
 #include <iostream>
+#include <vector>
+#include <array>
+#include <tuple>
 
 namespace Nameko {
 	class BasePool {
-	protected:
-		std::vector<std::byte*> m_blocks;
+	public:
+		BasePool() = default;
+		BasePool(const BasePool&) = delete;
+		BasePool& operator=(const BasePool&) = delete;
+		BasePool(BasePool&&) = delete;
+		BasePool& operator=(BasePool&&) = delete;
+		virtual ~BasePool() = default;
+	};
 
-		size_t m_elementSize;
+	template<size_t ChunkSize, class... T>
+	class Pool {
+	private:
+		std::vector<std::tuple<T*...>> m_blocks;
+		std::array<size_t, sizeof...(T)> m_typeSizes;
 		size_t m_chunkSize;
-		size_t m_totalBytes;
-
+		size_t m_totalSize;
 		size_t m_size;
 
 	public:
-		BasePool(size_t elementSize, size_t chunkSize)
-			: m_elementSize(elementSize)
-			, m_chunkSize(chunkSize)
-			, m_totalBytes(elementSize * chunkSize)
-			, m_size(0)
-		{}
-
-		virtual ~BasePool() = default;
-
-		size_t size() const { return m_size; }
-
-		void* get(size_t n) {
-			assert(m_size > n && "n must be smaller than size.");
-			const size_t chunkSize = n / m_chunkSize;
-			const size_t currentSize = n - chunkSize * m_chunkSize;
-			return m_blocks[chunkSize] + m_elementSize * (currentSize);
-		}
-
-		virtual void add(void* ptr) = 0;
-		virtual void replace(size_t n, void* ptr) = 0;
-		virtual void destroy(size_t n) = 0;
-		virtual BasePool* createPool() = 0;
-	};
-
-	template<typename T, size_t ChunkSize>
-	class Pool : public BasePool {
-	public:
-		Pool() 
-			: BasePool(sizeof(T), ChunkSize)
-		{
-			static_assert(std::is_standard_layout<T>::value == true, "template parameter T must be trivial");
+		Pool() : m_chunkSize(ChunkSize), m_size(0), m_totalSize(0) {
+			size_t index = 0;
+			((m_typeSizes[index++] = sizeof(T)), ...);
+			for (size_t size : m_typeSizes) {
+				m_totalSize += size;
+			}
+			m_totalSize *= m_chunkSize;
 		}
 
 		~Pool() {
-			for (size_t i = 0; i < m_size; i++) {
-				static_cast<T*>(this->get(i))->~T();
-			}
-
-			for (auto ptr : m_blocks) {
-				delete[] ptr;
-				std::cout << "Free : " << m_totalBytes << "[bytes]" << std::endl;
+			for (auto block : m_blocks) {
+				for (size_t i = 0; i < m_size; i++) {
+					(this->at<T>(i).~T(), ...);
+				}
+				free(static_cast<void*>(std::get<0>(block)));
 			}
 		}
 
-		inline void add(T& t) {
+		/*
+		std::tuple<T&...> at(const size_t n) {
+			if (n >= m_size) {
+				throw std::out_of_range("Index out of range");
+			}
+			const size_t blockIndex = n / m_chunkSize;
+			const size_t index = n - blockIndex * m_chunkSize;
+			return std::tie(std::get<T*>(m_blocks[blockIndex])[index]...);
+		}
+		*/
+
+		template<class S>
+		S& at(const size_t n) {
+			if (n >= m_size) {
+				throw std::out_of_range("Index out of range");
+			}
+			const size_t blockIndex = n / m_chunkSize;
+			const size_t index = n - blockIndex * m_chunkSize;
+			return std::get<S*>(m_blocks[blockIndex])[index];
+		}
+
+		void push_back(T&&... t) {
 			const size_t index = m_size++;
-			const size_t chunkSize = index / m_chunkSize;
+			const size_t blockIndex = index / m_chunkSize;
 
-			if(chunkSize >= m_blocks.size()) {
-				// ÉAÉâÉCÉÅÉìÉg
-				// auto ptr = static_cast<std::byte*>(operator new(m_totalBytes, std::align_val_t(alignof(T))));
-				// m_blocks.emplace_back(ptr);
-				m_blocks.emplace_back(new std::byte[m_totalBytes]);
-				std::cout << "Total Bytes : " << m_totalBytes << std::endl;
+			if (blockIndex >= m_blocks.size()) {
+				char* ptr = static_cast<char*>(malloc(m_totalSize));
+				size_t offset = 0;
+				m_blocks.emplace_back(std::make_tuple(static_cast<T*>(nullptr)...));
+				makeBlock<0, T...>(ptr, 0, blockIndex);
 			}
 
-			::new(this->get(index)) T(std::move(t));
+			((::new(&this->at<T>(index)) T(std::move(t))), ...);
 		}
 
-		inline void add(void* ptr) override {
-			this->add(*static_cast<T*>(ptr));
-		}
-
-		void replace(size_t n, void* ptr) override {
-			*static_cast<T*>(this->get(n)) = std::move(*static_cast<T*>(ptr));
-		}
-
-		inline void destroy(size_t n) override {
+		void remove(const size_t n) {
 			const size_t last = m_size - 1;
-			static_cast<T*>(this->get(n))->~T();
 			if (n != last) {
-				this->replace(n, this->get(last));
+				((this->at<T>(n) = std::move(this->at<T>(last))),...);
 			}
-
 			m_size--;
 		}
 
-		BasePool* createPool() override {
-			return new Pool<T, ChunkSize>;
+		void clear() {
+			for (auto block : m_blocks) {
+				for (size_t i = 0; i < m_size; i++) {
+					(this->at<T>(i).~T(), ...);
+				}
+				free(static_cast<void*>(std::get<0>(block)));
+			}
+
+			m_blocks.clear();
+			m_size = 0;
 		}
+
+	private:
+		template <int N, typename T>
+		void makeBlock(char* ptr, size_t offset, const size_t blockIndex) {
+			std::get<N>(m_blocks[blockIndex]) = static_cast<T*>(static_cast<void*>(ptr + offset));
+		}
+
+		template <int N, typename T0, typename T1, typename ... Tn>
+		void makeBlock(char* ptr, size_t offset, const size_t blockIndex) {
+			std::get<N>(m_blocks[blockIndex]) = static_cast<T0*>(static_cast<void*>(ptr + offset));
+			offset += sizeof(T0) * m_chunkSize;
+			makeBlock<N + 1, T1, Tn...>(ptr, offset, blockIndex);
+		}
+
+		/*
+		struct Iterator {
+		private:
+			Pool* pool_;
+			size_t index_;
+
+		public:
+			using iterator_category = std::forward_iterator_tag;
+			using difference_type = std::ptrdiff_t;
+			using value_type = T;
+			using pointer = T*;
+			using reference = T&;
+
+			Iterator(Pool* pool, size_t index) : pool_(pool), index_(index) {}
+
+			reference operator*() const { return (*pool_)[index_]; }
+			pointer operator->() { return &(*pool_)[index_]; }
+			Iterator& operator++() { ++index_; return *this; }
+			Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+			friend bool operator==(const Iterator& a, const Iterator& b) { return a.index_ == b.index_; }
+			friend bool operator!=(const Iterator& a, const Iterator& b) { return a.index_ != b.index_; }
+		};
+
+		Iterator begin() { return Iterator(this, 0); }
+		Iterator end() { return Iterator(this, m_size); }
+		*/
 	};
 }

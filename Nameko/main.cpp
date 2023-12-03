@@ -7,11 +7,34 @@
 
 struct Transform {
 	Transform(float x, float y) : x(x), y(y) {
-//		std::cout << "Transform Constructor : " << this->x << std::endl;
+		std::cout << "Transform Constructor : " << this->x << std::endl;
 	}
-
+	// コピーコンストラクタ
+	Transform(const Transform& other) : x(other.x), y(other.y) {
+		std::cout << "Transform Copy Constructor : " << this->x << std::endl;
+	}
+	// Copy assignment operator
+	Transform& operator=(const Transform& other) {
+		if (this != &other) {
+			x = other.x;
+			y = other.y;
+		}
+		return *this;
+	}
+	// ムーブコンストラクタ
+	Transform(Transform&& other) noexcept : x(other.x), y(other.y) {
+		std::cout << "Transform Move Constructor : " << this->x << std::endl;
+	}
+	// Move assignment operator
+	Transform& operator=(Transform&& other) noexcept {
+		if (this != &other) {
+			x = std::move(other.x);
+			y = std::move(other.y);
+		}
+		return *this;
+	}
 	~Transform() {
-//		std::cout << "Transform Destructor : " << this->x << std::endl;
+		std::cout << "Transform Destructor : " << this->x << std::endl;
 	}
 
 	float x;
@@ -56,6 +79,7 @@ struct Model {
 	Vertex vertex;
 };
 
+/*
 class Updator : public Nameko::System {
 public:
 	Updator() { std::cout << "Updator Constructor" << std::endl; }
@@ -87,7 +111,22 @@ public:
 		return m_entityManager->CreateEntity();
 	}
 };
+*/
 
+int main() {
+	Nameko::Pool<1024, Transform, Position> pool;
+	pool.push_back(Transform(1, 1), Position(1, 1));
+	pool.push_back(Transform(1, 1), Position(1, 1));
+	pool.push_back(Transform(1, 1), Position(1, 1));
+	pool.push_back(Transform(2, 2), Position(2, 2));
+	pool.remove(1);
+	std::cout << pool.at<Transform>(0).x << std::endl;
+	std::cout << pool.at<Transform>(1).x << std::endl;
+	std::cout << pool.at<Transform>(2).x << std::endl;
+}
+
+
+/*
 int main() {
 	using namespace Nameko;
 
@@ -111,7 +150,7 @@ int main() {
 
 	return 0;
 }
-
+*/
 
 /*
 int main() {

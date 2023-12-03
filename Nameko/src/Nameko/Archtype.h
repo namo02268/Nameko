@@ -8,6 +8,29 @@
 #include "Nameko/Pool.h"
 
 namespace Nameko {
+	template<class... Components>
+	class Archetype {
+	private:
+		Pool<1024, Entity, Components...> m_componentPool;
+
+	public:
+		Archetype() {}
+		~Archetype() {}
+
+		void AddComponents(Entity entity, Components&&... components) {
+			m_componentPool.push_back(entity, components...);
+		}
+
+		void GetComponent(Entity entity) {
+
+		}
+
+		void RemoveComponents(size_t instance) {
+			m_componentPool.remove(instance);
+		}
+	};
+
+	/*
 	class Archetype {
 	private:
 		std::vector<BasePool*> m_componentPools;
@@ -52,19 +75,8 @@ namespace Nameko {
 			}
 			static_cast<Pool<Component, CHUNK_SIZE>*>(this->m_componentPools[this->m_familyToPool[family]])->add(component);
 
-			this->m_entityPool->add(entity);
+			this->m_entityPool->push_back(entity);
 			this->m_entityToInstance[entity] = this->m_size;
-			this->m_size++;
-		}
-
-
-		void DeplicateEntity(Entity src, Entity dst) {
-			for (auto& pool : m_componentPools) {
-				pool->add(pool->get(this->m_entityToInstance[src]));
-			}
-
-			this->m_entityPool->add(dst);
-			this->m_entityToInstance[dst] = this->m_size;
 			this->m_size++;
 		}
 
@@ -88,7 +100,7 @@ namespace Nameko {
 					other->m_componentPools[other->m_familyToPool[familyID]]->add(this->m_componentPools[poolID]->get(this->m_entityToInstance[entity]));
 				}
 			}
-			other->m_entityPool->add(entity);
+			other->m_entityPool->push_back(entity);
 			other->m_entityToInstance[entity] = other->m_size;
 			other->m_size++;
 
@@ -97,10 +109,10 @@ namespace Nameko {
 
 		void RemoveComponents(Entity entity) {
 			for (auto& pool : m_componentPools) {
-				pool->destroy(m_entityToInstance[entity]);
+				pool->remove(m_entityToInstance[entity]);
 			}
-			m_entityToInstance[*static_cast<Entity*>(m_entityPool->get(m_size - 1))] = m_entityToInstance[entity];
-			m_entityPool->destroy(m_entityToInstance[entity]);
+			m_entityToInstance[*static_cast<Entity*>(m_entityPool->at(m_size - 1))] = m_entityToInstance[entity];
+			m_entityPool->remove(m_entityToInstance[entity]);
 			m_size--;
 		}
 
@@ -128,7 +140,7 @@ namespace Nameko {
 
 			const size_t currentSize = m_size - chunkSize * CHUNK_SIZE;
 			if (currentSize != 0) {
-				auto ptr = static_cast<Entity*>(m_entityPool->get(CHUNK_SIZE * chunkSize));
+				auto ptr = static_cast<Entity*>(m_entityPool->at(CHUNK_SIZE * chunkSize));
 				for (size_t j = 0; j < currentSize; ++j) {
 					lambda(ptr[j]);
 				}
@@ -143,4 +155,5 @@ namespace Nameko {
 			}
 		}
 	};
+	*/
 }

@@ -3,6 +3,7 @@
 #include "Nameko/ECS.h"
 
 namespace Nameko {
+	/*
 	class ECS;
 
 	class System {
@@ -19,4 +20,5 @@ namespace Nameko {
 		virtual void Update(float dt) = 0;
 		virtual void Draw() = 0;
 	};
+	*/
 }

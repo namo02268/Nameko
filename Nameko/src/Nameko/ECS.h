@@ -9,6 +9,7 @@
 #include "Nameko/System.h"
 
 namespace Nameko {
+	/*
 	class ECS {
 	protected:
 		EntityManager* m_entityManager;
@@ -136,4 +137,5 @@ namespace Nameko {
 			return dst;
 		}
 	};
+	*/
 }
