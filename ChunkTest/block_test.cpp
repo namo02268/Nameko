@@ -15,7 +15,7 @@ protected:
 		block0_.create('c');	// a b c	(create: c)
 		block0_.create('d');	// a b c d	(create: d)
 		block0_.swap(0, 2);		// c b a d	(swap: a c)
-		block0_.destroy(1);		// c d a	(destroy: b, swap b d)
+		block0_.remove(1);		// c d a	(remove: b, swap b d)
 		block0_.create('e');	// c d a e	(create: e)
 		block0_.swap(0, 3);		// e d a c	(swap: c e)
 
@@ -24,7 +24,7 @@ protected:
 		block1_.create(3);		// 1 2 3
 		block1_.create(4);		// 1 2 3 4
 		block1_.swap(0, 1);		// 2 1 3 4
-		block1_.destroy(3);		// 2 1 3
+		block1_.remove(3);		// 2 1 3
 		block1_.create(5);		// 2 1 3 5
 		block1_.swap(2, 3);		// 2 1 5 3
 
@@ -32,8 +32,8 @@ protected:
 		block2_.create(0.2);	// 0.1 0.2
 		block2_.create(0.3);	// 0.1 0.2 0.3
 		block2_.create(0.4);	// 0.1 0.2 0.3 0.4
-		block2_.destroy(1);		// 0.1 0.4 0.3
-		block2_.destroy(1);		// 0.1 0.3
+		block2_.remove(1);		// 0.1 0.4 0.3
+		block2_.remove(1);		// 0.1 0.3
 		block2_.create(0.5);	// 0.1 0.3 0.5
 		block2_.create(0.6);	// 0.1 0.3 0.5 0.6
 	}
@@ -76,16 +76,16 @@ TEST_F(BLOCK_TEST, Element) {
 	EXPECT_EQ(0.6, block2_[3]);
 }
 TEST_F(BLOCK_TEST, Pointer) {
-	EXPECT_EQ(block0_.get(0) + 1, block0_.get(1));
-	EXPECT_EQ(block0_.get(0) + 2, block0_.get(2));
-	EXPECT_EQ(block0_.get(0) + 3, block0_.get(3));
+	EXPECT_EQ(block0_.at(0) + 1, block0_.at(1));
+	EXPECT_EQ(block0_.at(0) + 2, block0_.at(2));
+	EXPECT_EQ(block0_.at(0) + 3, block0_.at(3));
 
-	EXPECT_EQ(block1_.get(0) + 1, block1_.get(1));
-	EXPECT_EQ(block1_.get(0) + 2, block1_.get(2));
-	EXPECT_EQ(block1_.get(0) + 3, block1_.get(3));
+	EXPECT_EQ(block1_.at(0) + 1, block1_.at(1));
+	EXPECT_EQ(block1_.at(0) + 2, block1_.at(2));
+	EXPECT_EQ(block1_.at(0) + 3, block1_.at(3));
 
-	EXPECT_EQ(block2_.get(0) + 1, block2_.get(1));
-	EXPECT_EQ(block2_.get(0) + 2, block2_.get(2));
-	EXPECT_EQ(block2_.get(0) + 3, block2_.get(3));
+	EXPECT_EQ(block2_.at(0) + 1, block2_.at(1));
+	EXPECT_EQ(block2_.at(0) + 2, block2_.at(2));
+	EXPECT_EQ(block2_.at(0) + 3, block2_.at(3));
 }
 */

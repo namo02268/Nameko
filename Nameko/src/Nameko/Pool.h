@@ -27,16 +27,16 @@ namespace Nameko {
 
 		size_t size() const { return m_size; }
 
-		void* get(size_t n) {
+		void* at(size_t n) {
 			assert(m_size > n && "n must be smaller than size.");
 			const size_t chunkSize = n / m_chunkSize;
 			const size_t currentSize = n - chunkSize * m_chunkSize;
 			return m_blocks[chunkSize] + m_elementSize * (currentSize);
 		}
 
-		virtual void add(void* ptr) = 0;
+		virtual void push_back(void* ptr) = 0;
 		virtual void replace(size_t n, void* ptr) = 0;
-		virtual void destroy(size_t n) = 0;
+		virtual void remove(size_t n) = 0;
 		virtual BasePool* createPool() = 0;
 	};
 
@@ -51,7 +51,7 @@ namespace Nameko {
 
 		~Pool() {
 			for (size_t i = 0; i < m_size; i++) {
-				static_cast<T*>(this->get(i))->~T();
+				static_cast<T*>(this->at(i))->~T();
 			}
 
 			for (auto ptr : m_blocks) {
@@ -60,7 +60,7 @@ namespace Nameko {
 			}
 		}
 
-		inline void add(T& t) {
+		void push_back(T& t) {
 			const size_t index = m_size++;
 			const size_t chunkSize = index / m_chunkSize;
 
@@ -72,22 +72,22 @@ namespace Nameko {
 				std::cout << "Total Bytes : " << m_totalBytes << std::endl;
 			}
 
-			::new(this->get(index)) T(std::move(t));
+			::new(this->at(index)) T(std::move(t));
 		}
 
-		inline void add(void* ptr) override {
-			this->add(*static_cast<T*>(ptr));
+		void push_back(void* ptr) override {
+			this->push_back(*static_cast<T*>(ptr));
 		}
 
 		void replace(size_t n, void* ptr) override {
-			*static_cast<T*>(this->get(n)) = std::move(*static_cast<T*>(ptr));
+			*static_cast<T*>(this->at(n)) = std::move(*static_cast<T*>(ptr));
 		}
 
-		inline void destroy(size_t n) override {
+		void remove(size_t n) override {
 			const size_t last = m_size - 1;
-			static_cast<T*>(this->get(n))->~T();
+			static_cast<T*>(this->at(n))->~T();
 			if (n != last) {
-				this->replace(n, this->get(last));
+				this->replace(n, this->at(last));
 			}
 
 			m_size--;
