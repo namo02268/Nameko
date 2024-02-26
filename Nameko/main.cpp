@@ -3,7 +3,14 @@
 #include "Nameko/TypeInfo.h"
 
 struct Transform {
-	Transform(float x, float y) : x(x), y(y) {}
+	Transform(float x, float y) : x(x), y(y) {
+		std::cout << "Transform Constructor : " << x << std::endl;
+	}
+
+	~Transform() {
+		std::cout << "Transform Destructor : " << x << std::endl;
+	}
+
 	float x;
 	float y;
 };
@@ -31,7 +38,11 @@ struct Model {
 int main() {
 	using namespace Nameko;
 
-	std::cout << IdGenerator::GetFamily<Transform>() << std::endl;
+	Transform t(1, 1);
+	std::cout << "------------------" << std::endl;
+	Transform s(std::move(t));
+	s.x = 2, s.y = 2;
+	std::cout << "------------------" << std::endl;
 
 	return 0;
 }
