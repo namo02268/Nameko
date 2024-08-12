@@ -1,45 +1,35 @@
 #pragma once
 
-class BasePool {
-private:
-	void* m_ptr;
-	size_t m_size;
-	size_t m_chunkSize;
-	size_t m_elementSize;
-	size_t m_totalSize;
+#include <memory>
 
-public:
-	BasePool(void* ptr, size_t chunkSize, size_t elementSize) {
-		m_ptr = ptr;
-		m_size = 0;
-		m_chunkSize = chunkSize;
-		m_elementSize = elementSize;
-		m_totalSize = chunkSize * elementSize;
-	}
-	virtual ~BasePool() = default;
+namespace Nameko {
+	class BasePool {
+	public:
+		virtual ~BasePool() {};
+	};
 
-	virtual void swap(BasePool* other) = 0;
-};
+	template<typename Component, size_t PoolSize>
+	class Pool : public BasePool {
+	private:
+		Component* m_castedPtr;
+		size_t m_index = 0;
 
-template<size_t ChunkSize, class Component>
-class Pool : public BasePool {
-private:
-	Component* m_castedPtr;
+	public:
+		Pool(void* ptr) {
+			std::cout << "Pool Constructor" << std::endl;
+			m_castedPtr = static_cast<Component*>(ptr);
+		}
 
-public:
-	Pool(void* ptr) : BasePool(ptr, ChunkSize, sizeof(Component)) {
-		m_castedPtr = static_cast<Component*>(ptr);
-	}
+		~Pool() {
+			std::cout << "Pool Destructor" << std::endl;
+			for (size_t i = 0; i < m_index; ++i) {
+				(m_castedPtr + i)->~Component();
+			}
+		}
 
-	Component& at(size_t n) {
-		return m_castedPtr[n];
-	}
-
-	void remove(size_t n) {
-
-	}
-
-	void swap(BasePool* other) {
-
-	}
-};
+		void push_back(const Component&& component) {
+			::new(m_castedPtr + m_index) Component(std::move(component));
+			++m_index;
+		}
+	};
+}

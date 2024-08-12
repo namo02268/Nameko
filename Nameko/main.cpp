@@ -1,10 +1,26 @@
 #include <iostream>
-
-#include "Nameko/TypeInfo.h"
+#include <tuple>
 
 struct Transform {
 	Transform(float x, float y) : x(x), y(y) {
 		std::cout << "Transform Constructor : " << x << std::endl;
+	}
+
+	// Copy Constructor
+	Transform(const Transform& other) : x(other.x), y(other.y) {
+		std::cout << "Transform Copy Constructor : " << x << std::endl;
+	}
+
+	// Move Constructor
+	Transform(Transform&& other) noexcept : x(std::move(other.x)), y(std::move(other.y)) {
+		std::cout << "Transform Move Constructor : " << x << std::endl;
+	}
+
+	Transform& operator=(const Transform& other) {
+		std::cout << "Transform Copy Constructor : " << x << std::endl;
+		this->x = other.x;
+		this->y = other.y;
+		return *this;
 	}
 
 	~Transform() {
@@ -35,14 +51,36 @@ struct Model {
 	Vertex vertex;
 };
 
-int main() {
-	using namespace Nameko;
+template < class... >
+struct tuple_add {};
+template < class... Tuple, class... Args >
+struct tuple_add < std::tuple < Tuple... >, Args... >
+{
+	using type = std::tuple < Tuple..., Args... >;
+};
 
-	Transform t(1, 1);
-	std::cout << "------------------" << std::endl;
-	Transform s(std::move(t));
-	s.x = 2, s.y = 2;
-	std::cout << "------------------" << std::endl;
+template<typename... Types>
+class ArcheType {
+	using my_types = std::tuple<Types...>;
+
+	template<typename Type>
+	using added_type = tuple_add<Types..., Type>;
+	
+public:
+	ArcheType() = default;
+	~ArcheType() = default;
+
+	template<typename Type>
+	ArcheType<Types..., Type>* Create(Type) {
+		auto arche = new ArcheType<Types..., Type>();
+		return arche;
+	}
+};
+
+
+int main() {
+	ArcheType<int, char> arche;
+	arche.Create(1.0f);
 
 	return 0;
 }

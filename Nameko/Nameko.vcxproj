@@ -138,7 +138,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Nameko\ArcheType.h" />
+    <ClInclude Include="src\Nameko\ComponentManager.h" />
     <ClInclude Include="src\Nameko\Config.h" />
+    <ClInclude Include="src\Nameko\IDGenerator.h" />
     <ClInclude Include="src\Nameko\Pool.h" />
     <ClInclude Include="src\Nameko\TypeInfo.h" />
   </ItemGroup>
