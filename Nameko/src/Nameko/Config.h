@@ -19,7 +19,6 @@ namespace Nameko {
 	using ArcheIndex = uint32_t;
 	using FamilyID = uint32_t;
 	// Arche ID = ArcheTypeID(32bit) + ArcheIndex(32bit)
-	using ArcheID = uint64_t;
 
 	struct ArcheID
 	{

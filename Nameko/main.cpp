@@ -1,5 +1,8 @@
 #include <iostream>
+#include "Nameko/ArcheType.h"
 #include <tuple>
+#include <vector>
+#include "Nameko/MemoryBlock.h"
 
 struct Transform {
 	Transform(float x, float y) : x(x), y(y) {
@@ -51,36 +54,12 @@ struct Model {
 	Vertex vertex;
 };
 
-template < class... >
-struct tuple_add {};
-template < class... Tuple, class... Args >
-struct tuple_add < std::tuple < Tuple... >, Args... >
-{
-	using type = std::tuple < Tuple..., Args... >;
-};
-
-template<typename... Types>
-class ArcheType {
-	using my_types = std::tuple<Types...>;
-
-	template<typename Type>
-	using added_type = tuple_add<Types..., Type>;
-	
-public:
-	ArcheType() = default;
-	~ArcheType() = default;
-
-	template<typename Type>
-	ArcheType<Types..., Type>* Create(Type) {
-		auto arche = new ArcheType<Types..., Type>();
-		return arche;
-	}
-};
-
-
 int main() {
-	ArcheType<int, char> arche;
-	arche.Create(1.0f);
+	using namespace Nameko;
+//	ArcheType<int, float, char> arche;
+//	arche.AllocatePool();
+
+	MemoryBlock<int, char, float> mem = MemoryBlock<int, char, float>(3);
 
 	return 0;
 }
