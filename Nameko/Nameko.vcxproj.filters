@@ -38,7 +38,10 @@
     <ClInclude Include="src\Nameko\ComponentManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="src\Nameko\MemoryBlock.h">
+    <ClInclude Include="src\Nameko\Memory\MemoryBlock.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Nameko\Memory\Factory.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

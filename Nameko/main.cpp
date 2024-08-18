@@ -2,7 +2,7 @@
 #include "Nameko/ArcheType.h"
 #include <tuple>
 #include <vector>
-#include "Nameko/MemoryBlock.h"
+#include "Nameko/Memory/Factory.h"
 
 struct Transform {
 	Transform(float x, float y) : x(x), y(y) {
@@ -59,7 +59,15 @@ int main() {
 //	ArcheType<int, float, char> arche;
 //	arche.AllocatePool();
 
-	MemoryBlock<int, char, float> mem = MemoryBlock<int, char, float>(3);
+	MemoryBlock<int, Transform, char> block1(4);
+	block1.Create(Transform(1, 1));
+	block1.Create(Transform(2, 2));
+	block1.Create(Transform(3, 3));
+
+	MemoryBlock<Transform, Mesh> block2(4);
+
+	Move<Transform>(block1, block2, 1);
+
 
 	return 0;
 }
