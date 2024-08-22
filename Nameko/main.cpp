@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include "Nameko/ArcheType.h"
 #include <tuple>
@@ -54,20 +55,30 @@ struct Model {
 	Vertex vertex;
 };
 
+template <typename T, typename List>
+using remove_type_t = typename TypeUtils::remove_type<T, List>::type;
+
+using original_list = TypeUtils::list<int, float, char>;
+using result_list = remove_type_t<float, original_list>;
+
 int main() {
 	using namespace Nameko;
-//	ArcheType<int, float, char> arche;
-//	arche.AllocatePool();
 
-	MemoryBlock<int, Transform, char> block1(4);
-	block1.Create(Transform(1, 1));
-	block1.Create(Transform(2, 2));
-	block1.Create(Transform(3, 3));
+	std::cout << std::is_same_v<TypeUtils::list<int, char>, result_list> << std::endl;
 
-	MemoryBlock<Transform, Mesh> block2(4);
+	ArcheTypeI<Mesh> src;
+	ArcheTypeI<Mesh, Transform> dst;
+	
+	src.memoryBlocks[0]->Create(Mesh(1));
+	src.memoryBlocks[0]->Create(Mesh(2));
+	src.memoryBlocks[0]->Create(Mesh(3));
 
-	Move<Transform>(block1, block2, 1);
+	dst.memoryBlocks[0]->Create(Transform(1, 1));
+	dst.memoryBlocks[0]->Create(Transform(2, 2));
+	dst.memoryBlocks[0]->Create(Mesh(1));
+	dst.memoryBlocks[0]->Create(Mesh(2));
 
+	src.AddComponent(&dst, Transform(1, 1));
 
 	return 0;
 }

@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 
 #include <tuple>
 #include <iostream>
@@ -46,7 +46,6 @@ namespace Nameko {
             totalSize = 0;
             size_t offset = 0;
 
-            // ÉIÉtÉZÉbÉgÇ∆ëSëÃÇÃÉTÉCÉYÇåvéZ
             for (size_t i = 0; i < sizeof...(Types); ++i) {
                 typeSizes[i] = sizes[i];
                 typeAlignments[i] = alignments[i];
@@ -64,7 +63,6 @@ namespace Nameko {
             InitializeTypePointers(std::make_index_sequence<sizeof...(Types)>{});
 
 #ifdef _DEBUG
-            // ÉfÉoÉbÉOèoóÕ
             std::cout << "Type sizes: ";
             for (size_t size : sizes) {
                 std::cout << size << " ";
@@ -174,11 +172,10 @@ namespace Nameko {
         static_assert(!has_duplicates<Types...>, "Duplicate types are not allowed in MemoryBlock");
     };
 
-    template<typename T, typename... Types1, typename... Types2>
-    static void Move(MemoryBlock<Types1...>& src, MemoryBlock<Types2...>& dst, size_t srcIdx) {
-        T* sourceElement = src.Get<T>(srcIdx);
-        dst.Create<T>(std::move(*sourceElement));
-        src.Destroy<T>(srcIdx);
+    template<typename T, typename... SrcTypes, typename... DstTypes>
+    static void Move(MemoryBlock<SrcTypes...>* src, MemoryBlock<DstTypes...>* dst, size_t srcIdx) {
+        T* sourceElement = src->Get<T>(srcIdx);
+        dst->Create<T>(std::move(*sourceElement));
+        src->Destroy<T>(srcIdx);
     }
-
 }

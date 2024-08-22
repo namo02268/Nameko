@@ -6,10 +6,10 @@
 namespace Nameko {
 	class IDGenerator {
 	private:
-		static inline FamilyID counter = 0;
+		static inline size_t counter = 0;
 
 		template<typename T>
-		static inline const FamilyID familyCounter = counter++;
+		static inline const size_t familyCounter = counter++;
 
 	public:
 		template<typename T>
